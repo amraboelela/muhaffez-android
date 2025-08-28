@@ -1,47 +1,74 @@
 package app.amr.muhaffez
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import app.amr.muhaffez.ui.theme.MuhaffezTheme
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MuhaffezTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Muhaffez",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+
+  private lateinit var recognizer: ArabicSpeechRecognizer
+  private val viewModel = MuhaffezViewModel()
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    recognizer = ArabicSpeechRecognizer(this)
+
+    // Permission request for mic
+    val requestPermissionLauncher = registerForActivityResult(
+      ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+      setContent {
+        MuhaffezTheme {
+          if (isGranted) {
+            MuhaffezView(viewModel, recognizer)
+          } else {
+            PermissionDeniedMessage()
+          }
         }
+      }
     }
+
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+      == PackageManager.PERMISSION_GRANTED
+    ) {
+      setContent {
+        MuhaffezTheme {
+          MuhaffezView(viewModel, recognizer)
+        }
+      }
+    } else {
+      requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+  }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun PermissionDeniedMessage() {
+  Box(
+    modifier = Modifier.fillMaxSize(),
+    contentAlignment = Alignment.Center
+  ) {
+    Text("Microphone permission is required for speech recognition.")
+  }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun PermissionDeniedMessagePreview() {
     MuhaffezTheme {
-        Greeting("Muhaffez")
+      PermissionDeniedMessage()
     }
 }
