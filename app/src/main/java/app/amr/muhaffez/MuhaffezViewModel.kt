@@ -1,15 +1,235 @@
 package app.amr.muhaffez
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.collections.listOf
+import kotlin.math.min
 
 class MuhaffezViewModel : ViewModel() {
-  var isRecording = mutableStateOf(false)
-  var voiceText = mutableStateOf("")
-  var matchedWords = mutableStateOf(listOf<Pair<String, Boolean>>())
 
+  private val _voiceText = mutableStateOf("")
+  val voiceText: State<String> get() = _voiceText
+  fun setVoiceText(value: String) {
+    _voiceText.value = value
+    voiceWords = value.normalizedArabic().split(" ")
+    if (value.isNotEmpty()) {
+      updateFoundAyat()
+      updateMatchedWords()
+    }
+  }
+
+  var isRecording by mutableStateOf(false)
+  //val isRecording: State<Boolean> get() = _isRecording
+
+  //private val _matchedWords = mutableStateOf(listOf<Pair<String, Boolean>>())
+  var matchedWords: State<listOf<Pair<String, Boolean>>> by mutableStateOf(listOf<Pair<String, Boolean>>())
+  private set
+  fun setMatchedWords(value: String) {
+    matchedWords = value
+    updatePages()
+  }
+
+//  var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
+//    private set
+  var foundAyat = mutableListOf<Int>()
+
+  val quranText = mutableStateOf("")
+    private set
+  //val quranText: State<String> get() = _quranText
+
+  fun setQuranText(value: String) {
+    quranText.value = value
+    quranWords = value.split(" ")
+  }
+
+//  var quranText by mutableStateOf("")
+//    set(value) {
+//      field = value
+//      quranWords = value.split(" ")
+//    }
+
+  private var quranWords = listOf<String>()
+  private var voiceWords = listOf<String>()
+
+  var tempRightPage = PageModel()
+  var tempLeftPage = PageModel()
+  var rightPage = PageModel()
+  var leftPage = PageModel()
+
+  var voicePageNumber by mutableStateOf(1)
+
+  var currentPageIsRight by mutableStateOf(true)
+    set(value) {
+      if (value && !field) rightPage.reset()
+      if (value) tempLeftPage.reset()
+      field = value
+    }
+
+  // Quran data (replace with your actual data source)
+  private val quranLines = QuranModel.quranLines
+  private val pageMarkers = QuranModel.pageMarkers
+  private val rub3Markers = QuranModel.rub3Markers
+  private val surahMarkers = QuranModel.surahMarkers
+
+  // Timers (debounce using coroutines)
+  private var debounceJob: Job? = null
+  private var peekJob: Job? = null
+
+  private val matchThreshold = 0.6
+  private val seekMatchThreshold = 0.7
+
+  // --- Actions ---
   fun resetData() {
-    voiceText.value = ""
-    matchedWords.value = emptyList()
+    foundAyat.clear()
+    quranText = ""
+    matchedWords = emptyList()
+    voiceText = ""
+    voicePageNumber = 1
+    currentPageIsRight = true
+    tempRightPage.reset()
+    tempLeftPage.reset()
+    rightPage.reset()
+    leftPage.reset()
+  }
+
+  // --- Ayah Matching ---
+  private fun updateFoundAyat() {
+    if (foundAyat.size == 1) return
+
+    foundAyat.clear()
+    val normVoice = voiceText.normalizedArabic()
+    if (normVoice.isEmpty()) return
+
+    quranLines.forEachIndexed { index, line ->
+      if (line.normalizedArabic().startsWith(normVoice)) {
+        foundAyat.add(index)
+      }
+    }
+
+    if (foundAyat.isEmpty()) {
+      debounceJob?.cancel()
+      debounceJob = viewModelScope.launch {
+        delay(1000)
+        performFallbackMatch(normVoice)
+      }
+    }
+
+    updateQuranText()
+  }
+
+  private fun performFallbackMatch(normVoice: String) {
+    var bestIndex: Int? = null
+    var bestScore = 0.0
+
+    quranLines.forEachIndexed { index, line ->
+      val lineNorm = line.normalizedArabic()
+      if (lineNorm.length >= normVoice.length) {
+        val prefix = lineNorm.take(normVoice.length + 2)
+        val score = normVoice.similarity(prefix)
+        if (score > bestScore) {
+          bestScore = score
+          bestIndex = index
+        }
+        if (score > 0.9) return@forEachIndexed
+      }
+    }
+
+    bestIndex?.let {
+      foundAyat.clear()
+      foundAyat.add(it)
+      updateQuranText()
+      updateMatchedWords()
+    }
+  }
+
+  private fun updateQuranText() {
+    foundAyat.firstOrNull()?.let { firstIndex ->
+      quranText = quranLines[firstIndex]
+      if (foundAyat.size == 1) {
+        val endIndex = min(firstIndex + 100, quranLines.size)
+        val extraLines = quranLines.subList(firstIndex + 1, endIndex)
+        quranText = (listOf(quranText) + extraLines).joinToString(" ")
+      }
+    }
+  }
+
+  // --- Word Matching ---
+  fun updateMatchedWords() {
+    if (foundAyat.size != 1) return
+
+    peekJob?.cancel()
+    peekJob = viewModelScope.launch {
+      delay(3000)
+      peekHelper()
+    }
+
+    val results = mutableListOf<Pair<String, Boolean>>()
+    var quranWordsIndex = -1
+
+    for (voiceWord in voiceWords) {
+      quranWordsIndex++
+      if (quranWordsIndex >= quranWords.size) break
+
+      val qWord = quranWords[quranWordsIndex]
+      val normQWord = qWord.normalizedArabic()
+      val score = voiceWord.similarity(normQWord)
+
+      if (score >= matchThreshold) {
+        results.add(qWord to true)
+        continue
+      }
+
+      if (tryBackwardMatch(quranWordsIndex, voiceWord, results)) continue
+      if (tryForwardMatch(quranWordsIndex, voiceWord, results)) continue
+
+      results.add(qWord to true)
+    }
+    matchedWords = results
+  }
+
+  private fun tryBackwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
+    for (step in 1..3) {
+      if (index - step < 0) break
+      val qWord = quranWords[index - step]
+      if (voiceWord.similarity(qWord.normalizedArabic()) > seekMatchThreshold) {
+        repeat(step) { results.removeLastOrNull() }
+        results.add(qWord to true)
+        return true
+      }
+    }
+    return false
+  }
+
+  private fun tryForwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
+    for (step in 1..3) {
+      if (index + step >= quranWords.size) break
+      val qWord = quranWords[index + step]
+      if (voiceWord.similarity(qWord.normalizedArabic()) > seekMatchThreshold) {
+        results.add(quranWords[index] to true)
+        for (s in 1 until step) {
+          results.add(quranWords[index + s] to true)
+        }
+        results.add(qWord to true)
+        return true
+      }
+    }
+    return false
+  }
+
+  // --- Peek Helper ---
+  fun peekHelper() {
+    if (!isRecording) return
+    val results = matchedWords.toMutableList()
+    val quranWordsIndex = matchedWords.size
+
+    if (quranWordsIndex + 2 < quranWords.size) {
+      results.add(quranWords[quranWordsIndex] to false)
+      results.add(quranWords[quranWordsIndex + 1] to false)
+      matchedWords = results
+    }
   }
 }

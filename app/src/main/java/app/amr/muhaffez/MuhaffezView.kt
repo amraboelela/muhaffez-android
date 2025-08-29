@@ -16,14 +16,17 @@ import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import app.amr.muhaffez.ui.theme.MuhaffezTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 
 @Composable
 fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognizer) {
-  // Observe speech recognition result
-  LaunchedEffect(recognizer.voiceText) {
-    recognizer.voiceText.observeForever {
-      viewModel.voiceText.value = it
-    }
+  val recognizedText by recognizer.voiceText.observeAsState("")
+  val voiceText by viewModel.voiceText
+  //val isRecording by viewModel.isRecording
+
+  LaunchedEffect(recognizedText) {
+    viewModel.setVoiceText(recognizedText)
   }
 
   Column(
@@ -32,33 +35,25 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
       .padding(16.dp),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    Box(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxWidth()
-    ) {
-      if (viewModel.matchedWords.value.isEmpty() && viewModel.voiceText.value.isNotEmpty()) {
-        // Show progress indicator if text received but no matches yet
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          CircularProgressIndicator(color = Color.Blue, strokeWidth = 4.dp)
-        }
-      } else {
-        TwoPagesView(viewModel) // Placeholder for your two-page UI
+    if (viewModel.matchedWords.value.isEmpty() && voiceText.isNotEmpty()) {
+      // Show progress indicator if text received but no matches yet
+      Spacer(modifier = Modifier.height(16.dp))
+      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = Color.Blue, strokeWidth = 4.dp)
       }
+      Spacer(modifier = Modifier.height(16.dp))
+    } else {
+      TwoPagesView(viewModel) // Placeholder for your two-page UI
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    // Mic button
     IconButton(
       onClick = {
-        if (viewModel.isRecording.value) {
+        if (viewModel.isRecording) {
           recognizer.stopRecording()
         } else {
           viewModel.resetData()
           recognizer.startRecording()
         }
-        viewModel.isRecording.value = !viewModel.isRecording.value
+        viewModel.isRecording = !viewModel.isRecording
       },
       modifier = Modifier
         .size(60.dp)
@@ -66,9 +61,9 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
         .shadow(4.dp, CircleShape)
     ) {
       Icon(
-        imageVector = if (viewModel.isRecording.value) Icons.Default.Mic else Icons.Default.MicOff,
+        imageVector = if (viewModel.isRecording) Icons.Default.Mic else Icons.Default.MicOff,
         contentDescription = "Mic",
-        tint = if (viewModel.isRecording.value) Color.Red else Color.Blue
+        tint = if (viewModel.isRecording) Color.Red else Color.Blue
       )
     }
   }

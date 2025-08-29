@@ -51,8 +51,9 @@ dependencies {
 
     // Compose Material Icons Extended (needed for Icons.Filled.Mic etc.)
     implementation(libs.androidx.material.icons.extended)
+  implementation(libs.androidx.runtime.livedata)
 
-    testImplementation(libs.junit)
+  testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
