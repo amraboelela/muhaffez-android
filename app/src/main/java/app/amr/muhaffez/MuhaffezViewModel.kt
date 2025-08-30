@@ -1,6 +1,7 @@
 package app.amr.muhaffez
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
@@ -11,10 +12,9 @@ import kotlin.math.min
 
 class MuhaffezViewModel : ViewModel() {
 
-  private val _voiceText = mutableStateOf("")
-  val voiceText: State<String> get() = _voiceText
+  var voiceText by mutableStateOf("")
   fun setVoiceText(value: String) {
-    _voiceText.value = value
+    voiceText = value
     voiceWords = value.normalizedArabic().split(" ")
     if (value.isNotEmpty()) {
       updateFoundAyat()
@@ -23,34 +23,19 @@ class MuhaffezViewModel : ViewModel() {
   }
 
   var isRecording by mutableStateOf(false)
-  //val isRecording: State<Boolean> get() = _isRecording
-
-  //private val _matchedWords = mutableStateOf(listOf<Pair<String, Boolean>>())
-  var matchedWords: State<listOf<Pair<String, Boolean>>> by mutableStateOf(listOf<Pair<String, Boolean>>())
-  private set
-  fun setMatchedWords(value: String) {
+  var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
+  fun setMatchedWords(value: List<Pair<String, Boolean>>) {
     matchedWords = value
     updatePages()
   }
 
-//  var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
-//    private set
   var foundAyat = mutableListOf<Int>()
 
-  val quranText = mutableStateOf("")
-    private set
-  //val quranText: State<String> get() = _quranText
-
-  fun setQuranText(value: String) {
-    quranText.value = value
-    quranWords = value.split(" ")
-  }
-
-//  var quranText by mutableStateOf("")
-//    set(value) {
-//      field = value
-//      quranWords = value.split(" ")
-//    }
+  var quranText = ""
+    set(value) {
+      quranText = value
+      quranWords = value.split(" ")
+    }
 
   private var quranWords = listOf<String>()
   private var voiceWords = listOf<String>()
@@ -59,26 +44,23 @@ class MuhaffezViewModel : ViewModel() {
   var tempLeftPage = PageModel()
   var rightPage = PageModel()
   var leftPage = PageModel()
-
-  var voicePageNumber by mutableStateOf(1)
-
-  var currentPageIsRight by mutableStateOf(true)
+  var currentPageIsRight = true
     set(value) {
-      if (value && !field) rightPage.reset()
-      if (value) tempLeftPage.reset()
-      field = value
+      if (value) {
+        tempLeftPage.reset()
+      }
+      if (!currentPageIsRight && value) {
+        rightPage.reset()
+      }
+      currentPageIsRight = value
     }
 
   // Quran data (replace with your actual data source)
   private val quranLines = QuranModel.quranLines
-  private val pageMarkers = QuranModel.pageMarkers
-  private val rub3Markers = QuranModel.rub3Markers
-  private val surahMarkers = QuranModel.surahMarkers
 
   // Timers (debounce using coroutines)
   private var debounceJob: Job? = null
   private var peekJob: Job? = null
-
   private val matchThreshold = 0.6
   private val seekMatchThreshold = 0.7
 
@@ -86,9 +68,8 @@ class MuhaffezViewModel : ViewModel() {
   fun resetData() {
     foundAyat.clear()
     quranText = ""
-    matchedWords = emptyList()
-    voiceText = ""
-    voicePageNumber = 1
+    setMatchedWords(emptyList())
+    setVoiceText("")
     currentPageIsRight = true
     tempRightPage.reset()
     tempLeftPage.reset()
@@ -150,7 +131,7 @@ class MuhaffezViewModel : ViewModel() {
     foundAyat.firstOrNull()?.let { firstIndex ->
       quranText = quranLines[firstIndex]
       if (foundAyat.size == 1) {
-        val endIndex = min(firstIndex + 100, quranLines.size)
+        val endIndex = min(firstIndex + 200, quranLines.size)
         val extraLines = quranLines.subList(firstIndex + 1, endIndex)
         quranText = (listOf(quranText) + extraLines).joinToString(" ")
       }
@@ -188,7 +169,7 @@ class MuhaffezViewModel : ViewModel() {
 
       results.add(qWord to true)
     }
-    matchedWords = results
+    setMatchedWords(results)
   }
 
   private fun tryBackwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
@@ -229,7 +210,7 @@ class MuhaffezViewModel : ViewModel() {
     if (quranWordsIndex + 2 < quranWords.size) {
       results.add(quranWords[quranWordsIndex] to false)
       results.add(quranWords[quranWordsIndex + 1] to false)
-      matchedWords = results
+      setMatchedWords(results)
     }
   }
 }

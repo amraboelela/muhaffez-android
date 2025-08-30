@@ -22,8 +22,6 @@ import androidx.compose.runtime.livedata.observeAsState
 @Composable
 fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognizer) {
   val recognizedText by recognizer.voiceText.observeAsState("")
-  val voiceText by viewModel.voiceText
-  //val isRecording by viewModel.isRecording
 
   LaunchedEffect(recognizedText) {
     viewModel.setVoiceText(recognizedText)
@@ -35,7 +33,7 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
       .padding(16.dp),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    if (viewModel.matchedWords.value.isEmpty() && voiceText.isNotEmpty()) {
+    if (viewModel.matchedWords.isEmpty() && viewModel.voiceText.isNotEmpty()) {
       // Show progress indicator if text received but no matches yet
       Spacer(modifier = Modifier.height(16.dp))
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -1,12 +1,14 @@
 package app.amr.muhaffez
 
-object QuranModel {
+import android.text.SpannableString
 
+object QuranModel {
   val quranLines: List<String>
   val pageMarkers: List<Int>
   val rub3Markers: List<Int>
   val surahMarkers: List<Int>
 
+  // Maps start page number to surah name
   val surahs: List<Pair<Int, String>> = listOf(
     1 to "الفاتحة",
     2 to "البقرة",
@@ -219,10 +221,9 @@ object QuranModel {
   fun updatePageModelsIfNeeded(viewModel: MuhaffezViewModel, index: Int) {
     if (viewModel.currentPageIsRight != isRightPage(index)) {
       updatePages(viewModel, index)
-      viewModel.voicePageNumber += 1
       if (viewModel.currentPageIsRight) {
-        viewModel.tempRightPage.text.clear()
-        viewModel.tempLeftPage.text.clear()
+        viewModel.tempRightPage.text = SpannableString("")
+        viewModel.tempLeftPage.text = SpannableString("")
       }
     }
   }
