@@ -2,6 +2,10 @@ package app.amr.muhaffez
 
 import android.text.SpannableStringBuilder
 import androidx.compose.runtime.*
+import android.text.style.ForegroundColorSpan
+import android.text.style.AbsoluteSizeSpan
+import android.graphics.Color
+import android.text.style.UnderlineSpan
 
 fun MuhaffezViewModel.updatePages() {
   tempRightPage.text = SpannableStringBuilder("")
