@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.amr.muhaffez.ui.theme.MuhaffezTheme
 
@@ -23,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-
+    QuranModel.initialize(this)
     recognizer = ArabicSpeechRecognizer(this)
 
     // Permission request for mic

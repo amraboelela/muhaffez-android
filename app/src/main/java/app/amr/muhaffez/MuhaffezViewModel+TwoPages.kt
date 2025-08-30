@@ -20,30 +20,30 @@ fun MuhaffezViewModel.updatePages() {
   }
 
   fun add(separator: CharSequence) {
-    if (QuranModel.isRightPage(currentLineIndex)) {
+    if (quranModel.isRightPage(currentLineIndex)) {
       tempRightPage.text.append(separator)
     } else {
       tempLeftPage.text.append(separator)
     }
   }
 
-  QuranModel.updatePages(this, currentLineIndex)
+  quranModel.updatePages(this, currentLineIndex)
 
   for ((_, pair) in matchedWords.withIndex()) {
     val (word, isMatched) = pair
-    QuranModel.updatePageModelsIfNeeded(this, currentLineIndex)
+    quranModel.updatePageModelsIfNeeded(this, currentLineIndex)
 
     if (isBeginningOfAya(wordIndexInLine)) {
-      if (QuranModel.isEndOfSurah(currentLineIndex - 1)) {
+      if (quranModel.isEndOfSurah(currentLineIndex - 1)) {
         add(surahSeparator(currentLineIndex))
-        if (QuranModel.isEndOfRub3(currentLineIndex - 1)) {
+        if (quranModel.isEndOfRub3(currentLineIndex - 1)) {
           add("⭐ ")
         }
       }
     }
 
     val attributedWord = attributedWord(word, isMatched)
-    if (QuranModel.isRightPage(currentLineIndex)) {
+    if (quranModel.isRightPage(currentLineIndex)) {
       tempRightPage.text.append(attributedWord)
     } else {
       tempLeftPage.text.append(attributedWord)
@@ -54,10 +54,10 @@ fun MuhaffezViewModel.updatePages() {
 
     if (isEndOfAya(wordIndexInLine, wordsInCurrentLine.size)) {
       add("🌼 ")
-      if (QuranModel.isEndOfSurah(currentLineIndex)) {
+      if (quranModel.isEndOfSurah(currentLineIndex)) {
         add("\n")
       }
-      if (QuranModel.isEndOfRub3(currentLineIndex) && !QuranModel.isEndOfSurah(currentLineIndex)) {
+      if (quranModel.isEndOfRub3(currentLineIndex) && !quranModel.isEndOfSurah(currentLineIndex)) {
         add("⭐ ")
       }
       advanceLine()
@@ -90,8 +90,8 @@ private fun isEndOfAya(wordIndex: Int, wordCount: Int): Boolean {
   return wordIndex >= wordCount
 }
 
-private fun surahSeparator(ayaIndex: Int): CharSequence {
-  val surahName = QuranModel.surahName(ayaIndex)
+fun MuhaffezViewModel.surahSeparator(ayaIndex: Int): CharSequence {
+  val surahName = quranModel.surahNameFor(ayaIndex) //surahName(ayaIndex)
   val spannable = SpannableStringBuilder("\n\t\t\t\t\tسورة $surahName\n\n")
   spannable.setSpan(AbsoluteSizeSpan(28, true), 0, spannable.length, 0)
   spannable.setSpan(UnderlineSpan(), 0, spannable.length, 0)

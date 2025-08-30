@@ -1,8 +1,9 @@
 package app.amr.muhaffez
 
-import android.text.SpannableString
+import android.content.Context
+import android.text.SpannableStringBuilder
 
-object QuranModel {
+class QuranModel private constructor(context: Context) {
   val quranLines: List<String>
   val pageMarkers: List<Int>
   val rub3Markers: List<Int>
@@ -133,8 +134,7 @@ object QuranModel {
     val surahMarkersList = mutableListOf<Int>()
 
     try {
-      // In Android, put "quran-simple-min.txt" in assets folder
-      val inputStream = App.context.assets.open("quran-simple-min.txt")
+      val inputStream = context.assets.open("quran-simple-min.txt")
       val content = inputStream.bufferedReader(Charsets.UTF_8).readText()
       val fileLines = content.split("\n")
 
@@ -177,7 +177,7 @@ object QuranModel {
     return Math.ceil(rub3Num / 8.0).toInt()
   }
 
-  fun surahNameForPage(page: Int): String {
+  fun surahNameFor(page: Int): String {
     if (page < 1) return ""
     for (i in surahs.indices.reversed()) {
       if (page >= surahs[i].first) return surahs[i].second
@@ -185,10 +185,10 @@ object QuranModel {
     return ""
   }
 
-  fun surahNameForAyahIndex(ayahIndex: Int): String {
-    if (surahMarkers.isEmpty() || ayahIndex < 0 || ayahIndex >= quranLines.size) return ""
+  fun surahNameForAyahIndex(index: Int): String {
+    if (surahMarkers.isEmpty() || index < 0 || index >= quranLines.size) return ""
     for (i in surahMarkers.indices.reversed()) {
-      if (ayahIndex >= surahMarkers[i]) return surahs[i + 1].second
+      if (index >= surahMarkers[i]) return surahs[i + 1].second
     }
     return surahs[0].second
   }
@@ -226,5 +226,27 @@ object QuranModel {
         viewModel.tempLeftPage.text = SpannableStringBuilder("")
       }
     }
+  }
+
+  companion object {
+    @Volatile
+    private var INSTANCE: QuranModel? = null
+
+    /** Initialize the singleton once, usually in Application or MainActivity */
+    fun initialize(context: Context) {
+      if (INSTANCE == null) {
+        synchronized(this) {
+          if (INSTANCE == null) {
+            INSTANCE = QuranModel(context.applicationContext)
+          }
+        }
+      }
+    }
+
+    /** Access the singleton anywhere later without passing context */
+    val shared: QuranModel
+      get() = INSTANCE ?: throw IllegalStateException(
+        "QuranModel not initialized. Call QuranModel.shared.initialize(context) first."
+      )
   }
 }

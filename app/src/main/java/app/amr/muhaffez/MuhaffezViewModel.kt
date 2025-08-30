@@ -55,7 +55,8 @@ class MuhaffezViewModel : ViewModel() {
       currentPageIsRight = value
     }
 
-  val quranLines = QuranModel.quranLines
+  val quranModel: QuranModel by lazy { QuranModel.shared }
+  val quranLines: List<String> by lazy { quranModel.quranLines }
 
   // Timers (debounce using coroutines)
   private var debounceJob: Job? = null
