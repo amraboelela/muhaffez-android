@@ -55,8 +55,7 @@ class MuhaffezViewModel : ViewModel() {
       currentPageIsRight = value
     }
 
-  // Quran data (replace with your actual data source)
-  private val quranLines = QuranModel.quranLines
+  val quranLines = QuranModel.quranLines
 
   // Timers (debounce using coroutines)
   private var debounceJob: Job? = null

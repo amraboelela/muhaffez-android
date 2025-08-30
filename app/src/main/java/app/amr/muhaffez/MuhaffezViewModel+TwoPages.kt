@@ -1,14 +1,14 @@
 package app.amr.muhaffez
 
+import android.text.SpannableStringBuilder
 import androidx.compose.runtime.*
 
 fun MuhaffezViewModel.updatePages() {
-  val tempRightPage = SpannableStringBuilder()
-  val tempLeftPage = SpannableStringBuilder()
+  tempRightPage.text = SpannableStringBuilder("")
+  tempLeftPage.text = SpannableStringBuilder("")
 
   val firstIndex = foundAyat.firstOrNull() ?: return
 
-  val quranModel = QuranModel.getInstance()
   var currentLineIndex = firstIndex
   var wordsInCurrentLine = wordsForLine(quranLines, currentLineIndex)
   var wordIndexInLine = 0
@@ -20,33 +20,33 @@ fun MuhaffezViewModel.updatePages() {
   }
 
   fun add(separator: CharSequence) {
-    if (quranModel.isRightPage(currentLineIndex)) {
-      tempRightPage.append(separator)
+    if (QuranModel.isRightPage(currentLineIndex)) {
+      tempRightPage.text.append(separator)
     } else {
-      tempLeftPage.append(separator)
+      tempLeftPage.text.append(separator)
     }
   }
 
-  quranModel.updatePages(this, currentLineIndex)
+  QuranModel.updatePages(this, currentLineIndex)
 
   for ((_, pair) in matchedWords.withIndex()) {
     val (word, isMatched) = pair
-    quranModel.updatePageModelsIfNeeded(this, currentLineIndex)
+    QuranModel.updatePageModelsIfNeeded(this, currentLineIndex)
 
     if (isBeginningOfAya(wordIndexInLine)) {
-      if (quranModel.isEndOfSurah(currentLineIndex - 1)) {
+      if (QuranModel.isEndOfSurah(currentLineIndex - 1)) {
         add(surahSeparator(currentLineIndex))
-        if (quranModel.isEndOfRub3(currentLineIndex - 1)) {
+        if (QuranModel.isEndOfRub3(currentLineIndex - 1)) {
           add("⭐ ")
         }
       }
     }
 
     val attributedWord = attributedWord(word, isMatched)
-    if (quranModel.isRightPage(currentLineIndex)) {
-      tempRightPage.append(attributedWord)
+    if (QuranModel.isRightPage(currentLineIndex)) {
+      tempRightPage.text.append(attributedWord)
     } else {
-      tempLeftPage.append(attributedWord)
+      tempLeftPage.text.append(attributedWord)
     }
 
     wordIndexInLine++
@@ -54,10 +54,10 @@ fun MuhaffezViewModel.updatePages() {
 
     if (isEndOfAya(wordIndexInLine, wordsInCurrentLine.size)) {
       add("🌼 ")
-      if (quranModel.isEndOfSurah(currentLineIndex)) {
+      if (QuranModel.isEndOfSurah(currentLineIndex)) {
         add("\n")
       }
-      if (quranModel.isEndOfRub3(currentLineIndex) && !quranModel.isEndOfSurah(currentLineIndex)) {
+      if (QuranModel.isEndOfRub3(currentLineIndex) && !QuranModel.isEndOfSurah(currentLineIndex)) {
         add("⭐ ")
       }
       advanceLine()
@@ -91,8 +91,7 @@ private fun isEndOfAya(wordIndex: Int, wordCount: Int): Boolean {
 }
 
 private fun surahSeparator(ayaIndex: Int): CharSequence {
-  val quranModel = QuranModel.getInstance()
-  val surahName = quranModel.surahName(ayaIndex)
+  val surahName = QuranModel.surahName(ayaIndex)
   val spannable = SpannableStringBuilder("\n\t\t\t\t\tسورة $surahName\n\n")
   spannable.setSpan(AbsoluteSizeSpan(28, true), 0, spannable.length, 0)
   spannable.setSpan(UnderlineSpan(), 0, spannable.length, 0)

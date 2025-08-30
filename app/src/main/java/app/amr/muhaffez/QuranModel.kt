@@ -222,8 +222,8 @@ object QuranModel {
     if (viewModel.currentPageIsRight != isRightPage(index)) {
       updatePages(viewModel, index)
       if (viewModel.currentPageIsRight) {
-        viewModel.tempRightPage.text = SpannableString("")
-        viewModel.tempLeftPage.text = SpannableString("")
+        viewModel.tempRightPage.text = SpannableStringBuilder("")
+        viewModel.tempLeftPage.text = SpannableStringBuilder("")
       }
     }
   }

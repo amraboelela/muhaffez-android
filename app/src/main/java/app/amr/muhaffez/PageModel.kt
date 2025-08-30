@@ -1,12 +1,12 @@
 package app.amr.muhaffez
 
-import android.text.SpannableString
+import android.text.SpannableStringBuilder
 
 data class PageModel(
   var juzNumber: Int = 0,
   var surahName: String = "",
   var pageNumber: Int = 0,
-  var text: SpannableString = SpannableString("")
+  var text: SpannableStringBuilder = SpannableStringBuilder("")
 ) {
   val textString: String
     get() = text.toString()
@@ -15,6 +15,6 @@ data class PageModel(
     juzNumber = 0
     surahName = ""
     pageNumber = 0
-    text = SpannableString("")
+    text = SpannableStringBuilder("")
   }
 }
