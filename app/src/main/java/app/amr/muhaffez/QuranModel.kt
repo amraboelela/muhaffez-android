@@ -2,6 +2,7 @@ package app.amr.muhaffez
 
 import android.content.Context
 import android.text.SpannableStringBuilder
+import androidx.compose.ui.text.AnnotatedString
 
 class QuranModel private constructor(context: Context) {
   val quranLines: List<String>
@@ -222,8 +223,8 @@ class QuranModel private constructor(context: Context) {
     if (viewModel.currentPageIsRight != isRightPage(index)) {
       updatePages(viewModel, index)
       if (viewModel.currentPageIsRight) {
-        viewModel.tempRightPage.text = SpannableStringBuilder("")
-        viewModel.tempLeftPage.text = SpannableStringBuilder("")
+        viewModel.tempRightPage.text = AnnotatedString.Builder()
+        viewModel.tempLeftPage.text = AnnotatedString.Builder()
       }
     }
   }

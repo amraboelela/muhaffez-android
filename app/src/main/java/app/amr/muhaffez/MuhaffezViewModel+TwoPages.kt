@@ -6,10 +6,11 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.AbsoluteSizeSpan
 import android.graphics.Color
 import android.text.style.UnderlineSpan
+import androidx.compose.ui.text.AnnotatedString
 
 fun MuhaffezViewModel.updatePages() {
-  tempRightPage.text = SpannableStringBuilder("")
-  tempLeftPage.text = SpannableStringBuilder("")
+  tempRightPage.text = AnnotatedString.Builder()
+  tempLeftPage.text = AnnotatedString.Builder()
 
   val firstIndex = foundAyat.firstOrNull() ?: return
 

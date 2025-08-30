@@ -22,6 +22,10 @@ import androidx.compose.runtime.livedata.observeAsState
 @Composable
 fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognizer) {
   val recognizedText by recognizer.voiceText.observeAsState("")
+  LaunchedEffect(Unit) {
+    // Use this for testing rub3 mark before
+    viewModel.voiceText = "ذٰلِكَ بِأَنَّ اللَّهَ نَزَّلَ الكِتابَ بِالحَقِّ وَإِنَّ الَّذينَ اختَلَفوا فِي الكِتابِ لَفي شِقاقٍ بَعيدٍ"
+  }
 
   LaunchedEffect(recognizedText) {
     viewModel.updateVoiceText(recognizedText)
@@ -41,7 +45,7 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
       }
       Spacer(modifier = Modifier.height(16.dp))
     } else {
-      TwoPagesView(viewModel) // Placeholder for your two-page UI
+      TwoPagesView(viewModel)
     }
     IconButton(
       onClick = {
