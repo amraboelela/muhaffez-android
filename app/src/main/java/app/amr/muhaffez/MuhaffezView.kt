@@ -24,7 +24,7 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
   val recognizedText by recognizer.voiceText.observeAsState("")
 
   LaunchedEffect(recognizedText) {
-    viewModel.setVoiceText(recognizedText)
+    viewModel.updateVoiceText(recognizedText)
   }
 
   Column(

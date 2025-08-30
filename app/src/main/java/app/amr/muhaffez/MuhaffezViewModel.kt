@@ -13,7 +13,7 @@ import kotlin.math.min
 class MuhaffezViewModel : ViewModel() {
 
   var voiceText by mutableStateOf("")
-  fun setVoiceText(value: String) {
+  fun updateVoiceText(value: String) {
     voiceText = value
     voiceWords = value.normalizedArabic().split(" ")
     if (value.isNotEmpty()) {
@@ -24,7 +24,7 @@ class MuhaffezViewModel : ViewModel() {
 
   var isRecording by mutableStateOf(false)
   var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
-  fun setMatchedWords(value: List<Pair<String, Boolean>>) {
+  fun updateMatchedWords(value: List<Pair<String, Boolean>>) {
     matchedWords = value
     updatePages()
   }
@@ -68,8 +68,8 @@ class MuhaffezViewModel : ViewModel() {
   fun resetData() {
     foundAyat.clear()
     quranText = ""
-    setMatchedWords(emptyList())
-    setVoiceText("")
+    updateMatchedWords(emptyList())
+    updateVoiceText("")
     currentPageIsRight = true
     tempRightPage.reset()
     tempLeftPage.reset()
@@ -169,7 +169,7 @@ class MuhaffezViewModel : ViewModel() {
 
       results.add(qWord to true)
     }
-    setMatchedWords(results)
+    updateMatchedWords(results)
   }
 
   private fun tryBackwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
@@ -210,7 +210,7 @@ class MuhaffezViewModel : ViewModel() {
     if (quranWordsIndex + 2 < quranWords.size) {
       results.add(quranWords[quranWordsIndex] to false)
       results.add(quranWords[quranWordsIndex + 1] to false)
-      setMatchedWords(results)
+      updateMatchedWords(results)
     }
   }
 }
