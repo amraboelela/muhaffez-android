@@ -13,6 +13,8 @@ import kotlin.math.min
 class MuhaffezViewModel : ViewModel() {
 
   var voiceText by mutableStateOf("")
+    private set
+
   fun updateVoiceText(value: String) {
     voiceText = value
     voiceWords = value.normalizedArabic().split(" ")
@@ -24,6 +26,7 @@ class MuhaffezViewModel : ViewModel() {
 
   var isRecording by mutableStateOf(false)
   var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
+    private set
   fun updateMatchedWords(value: List<Pair<String, Boolean>>) {
     matchedWords = value
     updatePages()
@@ -33,12 +36,12 @@ class MuhaffezViewModel : ViewModel() {
 
   var quranText = ""
     set(value) {
-      quranText = value
+      field = value
       quranWords = value.split(" ")
     }
 
-  private var quranWords = listOf<String>()
-  private var voiceWords = listOf<String>()
+  var quranWords = listOf<String>()
+  var voiceWords = listOf<String>()
 
   var tempRightPage = PageModel()
   var tempLeftPage = PageModel()
@@ -52,7 +55,7 @@ class MuhaffezViewModel : ViewModel() {
       if (!currentPageIsRight && value) {
         rightPage.reset()
       }
-      currentPageIsRight = value
+      field = value
     }
 
   val quranModel: QuranModel by lazy { QuranModel.shared }
@@ -172,7 +175,11 @@ class MuhaffezViewModel : ViewModel() {
     updateMatchedWords(results)
   }
 
-  private fun tryBackwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
+  private fun tryBackwardMatch(
+    index: Int,
+    voiceWord: String,
+    results: MutableList<Pair<String, Boolean>>
+  ): Boolean {
     for (step in 1..3) {
       if (index - step < 0) break
       val qWord = quranWords[index - step]
@@ -185,7 +192,11 @@ class MuhaffezViewModel : ViewModel() {
     return false
   }
 
-  private fun tryForwardMatch(index: Int, voiceWord: String, results: MutableList<Pair<String, Boolean>>): Boolean {
+  private fun tryForwardMatch(
+    index: Int,
+    voiceWord: String,
+    results: MutableList<Pair<String, Boolean>>
+  ): Boolean {
     for (step in 1..3) {
       if (index + step >= quranWords.size) break
       val qWord = quranWords[index + step]

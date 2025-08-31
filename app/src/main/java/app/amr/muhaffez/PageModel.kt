@@ -10,8 +10,9 @@ data class PageModel(
 ) {
   val annotatedString: AnnotatedString
     get() = text.toAnnotatedString()
-  val string: String
-    get() = text.toString()
+
+  val textString: String
+    get() = annotatedString.text
 
   fun reset() {
     juzNumber = 0

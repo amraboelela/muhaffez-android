@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 @Composable
 fun TwoPagesView(viewModel: MuhaffezViewModel) {
@@ -54,7 +53,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
       // viewModel.currentPageIsRight = true
 
       // --- Testing displaying Surah Al-Fateha ---
-//      viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
+      viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
 //
 //      delay(200) // 0.2 seconds
 //
@@ -111,14 +110,14 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
-        if (pageModel.pageNumber > 0) {
+        if (true) { //(pageModel.pageNumber > 0) {
           Text("${pageModel.pageNumber}", fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
           Text(pageModel.surahName, fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
           Text("جزء ${pageModel.juzNumber}", fontSize = 20.sp)
         } else {
-          Text(" ")
+          Text("Nothing")
         }
       }
 
