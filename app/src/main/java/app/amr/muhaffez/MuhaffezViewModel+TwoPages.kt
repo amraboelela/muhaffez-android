@@ -69,8 +69,8 @@ fun MuhaffezViewModel.updatePages() {
     }
   }
 
-  rightPage = tempRightPage
-  leftPage = tempLeftPage
+  rightPage = tempRightPage.deepCopy()
+  leftPage = tempLeftPage.deepCopy()
 }
 
 // --- Helpers ---

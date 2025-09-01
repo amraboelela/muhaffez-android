@@ -24,10 +24,11 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
   val recognizedText by recognizer.voiceText.observeAsState("")
   LaunchedEffect(Unit) {
     // Use this for testing rub3 mark before
-    viewModel.updateVoiceText("ذٰلِكَ بِأَنَّ اللَّهَ نَزَّلَ الكِتابَ بِالحَقِّ وَإِنَّ الَّذينَ اختَلَفوا فِي الكِتابِ لَفي شِقاقٍ بَعيدٍ")
+    //viewModel.updateVoiceText("ذٰلِكَ بِأَنَّ اللَّهَ نَزَّلَ الكِتابَ بِالحَقِّ وَإِنَّ الَّذينَ اختَلَفوا فِي الكِتابِ لَفي شِقاقٍ بَعيدٍ")
   }
 
   LaunchedEffect(recognizedText) {
+    println("recognizedText: $recognizedText")
     viewModel.updateVoiceText(recognizedText)
   }
 

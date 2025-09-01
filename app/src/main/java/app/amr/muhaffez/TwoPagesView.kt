@@ -28,7 +28,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val coroutineScope = rememberCoroutineScope()
   var scrollToPage by remember { mutableStateOf("RIGHT") }
 
-  LaunchedEffect(viewModel.rightPage.text, viewModel.leftPage.text) {
+  LaunchedEffect(viewModel.rightPage, viewModel.leftPage) {
     // Scroll to current page when text changes
     coroutineScope.launch {
       val screenWidth = 1080f // You may want to calculate screen width dynamically

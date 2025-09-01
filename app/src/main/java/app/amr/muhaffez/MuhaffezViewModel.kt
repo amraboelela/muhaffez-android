@@ -45,8 +45,8 @@ class MuhaffezViewModel : ViewModel() {
 
   var tempRightPage = PageModel()
   var tempLeftPage = PageModel()
-  var rightPage = PageModel()
-  var leftPage = PageModel()
+  var rightPage by mutableStateOf(PageModel())
+  var leftPage by mutableStateOf(PageModel())
   var currentPageIsRight = true
     set(value) {
       if (value) {
