@@ -34,11 +34,9 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val density = LocalDensity.current
   val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
 
-  LaunchedEffect(viewModel.rightPage, viewModel.leftPage) {
-    coroutineScope.launch {
-      val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
-      scrollState.scrollTo(offset.toInt())
-    }
+  LaunchedEffect(viewModel.currentPageIsRight) {
+    val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
+    scrollState.animateScrollTo(offset.toInt())
   }
 
   LaunchedEffect(Unit) {
@@ -46,11 +44,10 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
     //viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
 
     // --- Testing moving page animation ---
-     viewModel.updateCurrentPageIsRight(true)
-     delay(2000)
-     viewModel.updateCurrentPageIsRight(false)
-     delay(2000)
-     viewModel.updateCurrentPageIsRight(true)
+//     delay(2000)
+//     viewModel.updateCurrentPageIsRight(false)
+//     delay(2000)
+//     viewModel.updateCurrentPageIsRight(true)
 
     // --- Testing displaying Surah Al-Fateha ---
     //viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
@@ -70,7 +67,11 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 //    """.trimIndent())
 
   }
-
+//  if (viewModel.currentPageIsRight) {
+//    Text("Right Page")
+//  } else {
+//    Text("Left Page")
+//  }
   Row(
     modifier = Modifier
       .horizontalScroll(scrollState, enabled = true)
