@@ -47,17 +47,17 @@ class MuhaffezViewModel : ViewModel() {
   var tempLeftPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
   var leftPage by mutableStateOf(PageModel())
-  var currentPageIsRight = true
-    set(value) {
-      if (value) {
-        tempLeftPage.reset()
-      }
-      if (!currentPageIsRight && value) {
-        rightPage.reset()
-      }
-      field = value
+  var currentPageIsRight by mutableStateOf(true)
+    private set
+  fun updateCurrentPageIsRight(value: Boolean) {
+    if (value) {
+      tempLeftPage.reset()
     }
-
+    if (!currentPageIsRight && value) {
+      rightPage.reset()
+    }
+    currentPageIsRight = value
+  }
   val quranModel: QuranModel by lazy { QuranModel.shared }
   val quranLines: List<String> by lazy { quranModel.quranLines }
 
@@ -73,7 +73,7 @@ class MuhaffezViewModel : ViewModel() {
     quranText = ""
     updateMatchedWords(emptyList())
     updateVoiceText("")
-    currentPageIsRight = true
+    updateCurrentPageIsRight(true)
     tempRightPage.reset()
     tempLeftPage.reset()
     rightPage.reset()

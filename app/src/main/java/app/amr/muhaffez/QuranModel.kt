@@ -215,7 +215,7 @@ class QuranModel private constructor(context: Context) {
       viewModel.tempLeftPage.surahName = surahNameAt(index)
       viewModel.tempLeftPage.pageNumber = pageNumber(index)
     }
-    viewModel.currentPageIsRight = isRightPage(index)
+    viewModel.updateCurrentPageIsRight(isRightPage(index))
   }
 
   fun updatePageModelsIfNeeded(viewModel: MuhaffezViewModel, index: Int) {

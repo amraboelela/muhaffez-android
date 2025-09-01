@@ -18,42 +18,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val scrollState = rememberScrollState()
   val coroutineScope = rememberCoroutineScope()
-  var scrollToPage by remember { mutableStateOf("RIGHT") }
+
+  val configuration = LocalConfiguration.current
+  val density = LocalDensity.current
+  val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
 
   LaunchedEffect(viewModel.rightPage, viewModel.leftPage) {
-    // Scroll to current page when text changes
     coroutineScope.launch {
-      val screenWidth = 1080f // You may want to calculate screen width dynamically
-      val offset = if (viewModel.currentPageIsRight) screenWidth else 0f
+      val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
       scrollState.scrollTo(offset.toInt())
     }
   }
 
   LaunchedEffect(Unit) {
-    // On appear scroll to RIGHT page initially
-    val screenWidth = 1080f
-    scrollState.scrollTo(screenWidth.toInt())
+    scrollState.scrollTo(screenWidthPx.toInt())
+    //viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
 
-      // Scroll to the "RIGHT" page initially
-    //  proxy.scrollTo("RIGHT", anchor = 0.5f) // Compose uses Float anchor 0f..1f
+    // --- Testing moving page animation ---
+     viewModel.updateCurrentPageIsRight(true)
+     delay(2000)
+     viewModel.updateCurrentPageIsRight(false)
+     delay(2000)
+     viewModel.updateCurrentPageIsRight(true)
 
-      // --- Testing moving page animation ---
-      // viewModel.currentPageIsRight = true
-      // delay(2000)
-      // viewModel.currentPageIsRight = false
-      // delay(2000)
-      // viewModel.currentPageIsRight = true
-
-      // --- Testing displaying Surah Al-Fateha ---
-      viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
+    // --- Testing displaying Surah Al-Fateha ---
+    //viewModel.updateVoiceText("الحَمدُ لِلَّهِ رَبِّ العالَمينَ")
 //
 //      delay(200) // 0.2 seconds
 //
@@ -68,6 +68,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 //        -
 //        الم ذٰلِكَ الكِتابُ لا رَيبَ فيهِ هُدًى لِلمُتَّقينَ
 //    """.trimIndent())
+
   }
 
   Row(
@@ -75,8 +76,8 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
       .horizontalScroll(scrollState, enabled = true)
       .fillMaxSize()
   ) {
-    PageView(pageModel = viewModel.leftPage, isRight = false, modifier = Modifier.width(360.dp))
-    PageView(pageModel = viewModel.rightPage, isRight = true, modifier = Modifier.width(360.dp))
+    PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(380.dp))
+    PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(380.dp))
   }
 }
 
@@ -102,6 +103,7 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
     Column(
       modifier = Modifier
         .weight(1f)
+        .fillMaxWidth()
         .fillMaxHeight()
     ) {
       Row(
@@ -123,6 +125,7 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
 
       Column(
         modifier = Modifier
+          .fillMaxWidth()
           .fillMaxHeight()
           .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.SpaceBetween
