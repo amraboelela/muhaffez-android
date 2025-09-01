@@ -1,7 +1,6 @@
 package app.amr.muhaffez
 
 import android.content.Context
-import android.text.SpannableStringBuilder
 import androidx.compose.ui.text.AnnotatedString
 
 class QuranModel private constructor(context: Context) {
@@ -186,7 +185,7 @@ class QuranModel private constructor(context: Context) {
     return ""
   }
 
-  fun surahNameForAyahIndex(index: Int): String {
+  fun surahNameAt(index: Int): String {
     if (surahMarkers.isEmpty() || index < 0 || index >= quranLines.size) return ""
     for (i in surahMarkers.indices.reversed()) {
       if (index >= surahMarkers[i]) return surahs[i + 1].second
@@ -209,11 +208,11 @@ class QuranModel private constructor(context: Context) {
   fun updatePages(viewModel: MuhaffezViewModel, index: Int) {
     if (isRightPage(index)) {
       viewModel.tempRightPage.juzNumber = juzNumber(index)
-      viewModel.tempRightPage.surahName = surahNameForAyahIndex(index)
+      viewModel.tempRightPage.surahName = surahNameAt(index)
       viewModel.tempRightPage.pageNumber = pageNumber(index)
     } else {
       viewModel.tempLeftPage.juzNumber = juzNumber(index)
-      viewModel.tempLeftPage.surahName = surahNameForAyahIndex(index)
+      viewModel.tempLeftPage.surahName = surahNameAt(index)
       viewModel.tempLeftPage.pageNumber = pageNumber(index)
     }
     viewModel.currentPageIsRight = isRightPage(index)
