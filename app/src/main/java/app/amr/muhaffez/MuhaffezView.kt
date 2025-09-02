@@ -31,7 +31,6 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
     println("recognizedText: $recognizedText")
     viewModel.updateVoiceText(recognizedText)
   }
-
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -39,15 +38,19 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     if (viewModel.matchedWords.isEmpty() && viewModel.voiceText.isNotEmpty()) {
-      // Show progress indicator if text received but no matches yet
       Spacer(modifier = Modifier.height(16.dp))
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(color = Color.Blue, strokeWidth = 4.dp)
       }
       Spacer(modifier = Modifier.height(16.dp))
     } else {
-      TwoPagesView(viewModel)
+      // TwoPagesView takes remaining height, mic stays below
+      Box(modifier = Modifier.weight(1f)) {
+        TwoPagesView(viewModel)
+      }
     }
+
+    // Mic button stays at the bottom
     IconButton(
       onClick = {
         if (viewModel.isRecording) {

@@ -67,11 +67,6 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 //    """.trimIndent())
 
   }
-//  if (viewModel.currentPageIsRight) {
-//    Text("Right Page")
-//  } else {
-//    Text("Left Page")
-//  }
   Row(
     modifier = Modifier
       .horizontalScroll(scrollState, enabled = true)
@@ -100,7 +95,6 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           .padding(top = 10.dp)
       )
     }
-
     Column(
       modifier = Modifier
         .weight(1f)
