@@ -206,15 +206,9 @@ class QuranModel private constructor(context: Context) {
   }
 
   fun updatePages(viewModel: MuhaffezViewModel, index: Int) {
-    if (isRightPage(index)) {
-      viewModel.tempRightPage.juzNumber = juzNumber(index)
-      viewModel.tempRightPage.surahName = surahNameAt(index)
-      viewModel.tempRightPage.pageNumber = pageNumber(index)
-    } else {
-      viewModel.tempLeftPage.juzNumber = juzNumber(index)
-      viewModel.tempLeftPage.surahName = surahNameAt(index)
-      viewModel.tempLeftPage.pageNumber = pageNumber(index)
-    }
+    viewModel.tempPage.juzNumber = juzNumber(index)
+    viewModel.tempPage.surahName = surahNameAt(index)
+    viewModel.tempPage.pageNumber = pageNumber(index)
     viewModel.updateCurrentPageIsRight(isRightPage(index))
   }
 
@@ -222,8 +216,7 @@ class QuranModel private constructor(context: Context) {
     if (viewModel.currentPageIsRight != isRightPage(index)) {
       updatePages(viewModel, index)
       if (viewModel.currentPageIsRight) {
-        viewModel.tempRightPage.text = AnnotatedString.Builder()
-        viewModel.tempLeftPage.text = AnnotatedString.Builder()
+        viewModel.leftPage.text = AnnotatedString.Builder()
       }
     }
   }

@@ -18,12 +18,13 @@ import app.amr.muhaffez.ui.theme.MuhaffezTheme
 class MainActivity : ComponentActivity() {
 
   private lateinit var recognizer: ArabicSpeechRecognizer
-  private val viewModel = MuhaffezViewModel()
+  private lateinit var viewModel: MuhaffezViewModel
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     QuranModel.initialize(this)
     recognizer = ArabicSpeechRecognizer(this)
+    viewModel = MuhaffezViewModel(this)  // Pass context for ML model initialization
 
     // Permission request for mic
     val requestPermissionLauncher = registerForActivityResult(

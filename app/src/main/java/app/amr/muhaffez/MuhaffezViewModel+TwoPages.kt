@@ -9,51 +9,51 @@ import android.text.style.UnderlineSpan
 import androidx.compose.ui.text.AnnotatedString
 
 fun MuhaffezViewModel.updatePages() {
-  tempRightPage.text = AnnotatedString.Builder()
-  tempLeftPage.text = AnnotatedString.Builder()
-
-  val firstIndex = foundAyat.firstOrNull() ?: return
-
-  var currentLineIndex = firstIndex
+  if (pageMatchedWordsIndex >= matchedWords.size) {
+    return
+  }
+  tempPage.text = AnnotatedString.Builder()
+  var currentLineIndex = pageCurrentLineIndex
   var wordsInCurrentLine = wordsForLine(quranLines, currentLineIndex)
   var wordIndexInLine = 0
+  val matchedWordsIndex = pageMatchedWordsIndex
 
   fun advanceLine() {
+    if (quranModel.isRightPage(currentLineIndex)) {
+      rightPage = tempPage.deepCopy()
+    } else {
+      leftPage = tempPage.deepCopy()
+    }
     currentLineIndex += 1
     wordsInCurrentLine = wordsForLine(quranLines, currentLineIndex)
     wordIndexInLine = 0
   }
 
   fun add(separator: CharSequence) {
-    if (quranModel.isRightPage(currentLineIndex)) {
-      tempRightPage.text.append(separator)
-    } else {
-      tempLeftPage.text.append(separator)
-    }
+    tempPage.text.append(separator)
   }
 
   quranModel.updatePages(this, currentLineIndex)
 
-  for ((_, pair) in matchedWords.withIndex()) {
-    val (word, isMatched) = pair
+  for (i in matchedWordsIndex until matchedWords.size) {
+    if (currentPageIsRight != quranModel.isRightPage(currentLineIndex)) {
+      pageCurrentLineIndex = currentLineIndex
+      pageMatchedWordsIndex = i
+      tempPage.reset()
+    }
     quranModel.updatePageModelsIfNeeded(this, currentLineIndex)
 
     if (isBeginningOfAya(wordIndexInLine)) {
       if (quranModel.isEndOfSurah(currentLineIndex - 1)) {
         add(surahSeparator(currentLineIndex))
-        if (quranModel.isEndOfRub3(currentLineIndex - 1)) {
-          add("⭐ ")
-        }
+      }
+      if (quranModel.isEndOfRub3(currentLineIndex - 1)) {
+        add("⭐ ")
       }
     }
 
-    val attributedWord = attributedWord(word, isMatched)
-    if (quranModel.isRightPage(currentLineIndex)) {
-      tempRightPage.text.append(attributedWord)
-    } else {
-      tempLeftPage.text.append(attributedWord)
-    }
-
+    val attributedWord = attributedWord(matchedWords[i].first, matchedWords[i].second)
+    tempPage.text.append(attributedWord)
     wordIndexInLine++
     add(" ")
 
@@ -62,15 +62,15 @@ fun MuhaffezViewModel.updatePages() {
       if (quranModel.isEndOfSurah(currentLineIndex)) {
         add("\n")
       }
-      if (quranModel.isEndOfRub3(currentLineIndex) && !quranModel.isEndOfSurah(currentLineIndex)) {
-        add("⭐ ")
-      }
       advanceLine()
     }
   }
 
-  rightPage = tempRightPage.deepCopy()
-  leftPage = tempLeftPage.deepCopy()
+  if (quranModel.isRightPage(currentLineIndex)) {
+    rightPage = tempPage.deepCopy()
+  } else {
+    leftPage = tempPage.deepCopy()
+  }
 }
 
 // --- Helpers ---

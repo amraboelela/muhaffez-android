@@ -1,5 +1,6 @@
 package app.amr.muhaffez
 
+import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -10,18 +11,72 @@ import kotlinx.coroutines.launch
 import kotlin.collections.listOf
 import kotlin.math.min
 
-class MuhaffezViewModel : ViewModel() {
+class MuhaffezViewModel(context: Context? = null) : ViewModel() {
 
   var voiceText by mutableStateOf("")
     private set
 
+  var textToPredict by mutableStateOf("")
+    private set
+
+  var voiceTextHasBesmillah by mutableStateOf(false)
+    private set
+
+  var voiceTextHasA3ozoBellah by mutableStateOf(false)
+    private set
+
+  var updatingFoundAyat by mutableStateOf(false)
+    private set
+
+  // ML Model for ayah prediction
+  private var mlModel: AyaFinderMLModel? = null
+
+  init {
+    // Initialize ML model if context is provided
+    context?.let {
+      try {
+        mlModel = AyaFinderMLModel(it)
+        println("ML Model initialized successfully")
+      } catch (e: Exception) {
+        println("Failed to initialize ML model: ${e.message}")
+        e.printStackTrace()
+      }
+    }
+  }
+
   fun updateVoiceText(value: String) {
     voiceText = value
-    voiceWords = value.normalizedArabic().split(" ")
-    if (value.isNotEmpty()) {
-      updateFoundAyat()
-      updateMatchedWords()
+    textToPredict = value.normalizedArabic()
+    updateTextToPredict()
+
+    // Check for A3ozoBellah
+    if (!voiceTextHasA3ozoBellah && voiceText.hasA3ozoBellah()) {
+      println("voiceText didSet, voiceTextHasA3ozoBellah = true")
+      voiceTextHasA3ozoBellah = true
     }
+
+    if (value.isNotEmpty()) {
+      if (foundAyat.size == 1) {
+        if (!updatingFoundAyat) {
+          updateMatchedWords()
+        }
+      } else {
+        updateFoundAyat()
+      }
+    }
+  }
+
+  private fun updateTextToPredict() {
+    var text = voiceText.normalizedArabic()
+    if (voiceTextHasA3ozoBellah) {
+      text = text.removeA3ozoBellah()
+    }
+    if (voiceTextHasBesmillah) {
+      text = text.removeBasmallah()
+    }
+    textToPredict = text
+    voiceWords = textToPredict.split(" ")
+    println("updateTextToPredict textToPredict: $textToPredict")
   }
 
   var isRecording by mutableStateOf(false)
@@ -32,7 +87,10 @@ class MuhaffezViewModel : ViewModel() {
     updatePages()
   }
 
+  var previousVoiceWordsCount = 0
   var foundAyat = mutableListOf<Int>()
+  var pageCurrentLineIndex = 0
+  var pageMatchedWordsIndex = 0
 
   var quranText = ""
     set(value) {
@@ -43,6 +101,7 @@ class MuhaffezViewModel : ViewModel() {
   var quranWords = listOf<String>()
   var voiceWords = listOf<String>()
 
+  var tempPage = PageModel()
   var tempRightPage = PageModel()
   var tempLeftPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
@@ -50,8 +109,8 @@ class MuhaffezViewModel : ViewModel() {
   var currentPageIsRight by mutableStateOf(true)
     private set
   fun updateCurrentPageIsRight(value: Boolean) {
-    if (value) {
-      tempLeftPage.reset()
+    if (!value) {
+      tempPage.reset()
     }
     if (!currentPageIsRight && value) {
       rightPage.reset()
@@ -64,77 +123,199 @@ class MuhaffezViewModel : ViewModel() {
   // Timers (debounce using coroutines)
   private var debounceJob: Job? = null
   private var peekJob: Job? = null
-  private val matchThreshold = 0.6
-  private val seekMatchThreshold = 0.7
+  private val matchThreshold = 0.7
+  private val simiMatchThreshold = 0.6
+  private val seekMatchThreshold = 0.95
 
   // --- Actions ---
   fun resetData() {
+    debounceJob?.cancel()
     foundAyat.clear()
     quranText = ""
     updateMatchedWords(emptyList())
-    updateVoiceText("")
-    updateCurrentPageIsRight(true)
+    voiceText = ""
+    currentPageIsRight = true
+    tempPage.reset()
     tempRightPage.reset()
     tempLeftPage.reset()
     rightPage.reset()
     leftPage.reset()
+    pageCurrentLineIndex = 0
+    pageMatchedWordsIndex = 0
+    previousVoiceWordsCount = 0
+    voiceTextHasBesmillah = false
+    voiceTextHasA3ozoBellah = false
+    updatingFoundAyat = false
   }
 
   // --- Ayah Matching ---
   private fun updateFoundAyat() {
+    println("updateFoundAyat")
+    updatingFoundAyat = true
+    debounceJob?.cancel()
     if (foundAyat.size == 1) return
 
     foundAyat.clear()
-    val normVoice = voiceText.normalizedArabic()
-    if (normVoice.isEmpty()) return
+    println("updateFoundAyat textToPredict: $textToPredict")
+    if (textToPredict.length <= 10) {
+      println("updateFoundAyat textToPredict.length <= 10")
+      return
+    }
 
+    // Fast prefix check
     quranLines.forEachIndexed { index, line ->
-      if (line.normalizedArabic().startsWith(normVoice)) {
-        foundAyat.add(index)
+      val normLine = line.normalizedArabic()
+      if (normLine.startsWith(textToPredict) || textToPredict.startsWith(normLine)) {
+        if (index == 0) {
+          println("updateFoundAyat, voiceTextHasBesmillah = true")
+          voiceTextHasBesmillah = true
+          if (textToPredict.isEmpty()) {
+            return
+          }
+        } else {
+          foundAyat.add(index)
+        }
       }
     }
 
-    if (foundAyat.isEmpty()) {
-      debounceJob?.cancel()
+    println("updateFoundAyat foundAyat: $foundAyat")
+    if (foundAyat.isNotEmpty()) {
+      for (ayahIndex in foundAyat) {
+        println("  Found ayah [$ayahIndex]: ${quranLines[ayahIndex]}")
+      }
+    }
+
+    // Fallback with debounce if no matches
+    if (foundAyat.isEmpty() || textToPredict.length < 17) {
+      println("foundAyat.isEmpty() || textToPredict.length < 17")
       debounceJob = viewModelScope.launch {
         delay(1000)
-        performFallbackMatch(normVoice)
+        performFallbackMatch()
       }
+      return
     }
 
+    println("updateFoundAyat foundAyat 2: $foundAyat")
     updateQuranText()
+    updateMatchedWords()
+    updatingFoundAyat = false
   }
 
-  private fun performFallbackMatch(normVoice: String) {
+  private fun performFallbackMatch() {
+    println("performFallbackMatch textToPredict: $textToPredict")
+
+    // Try ML model prediction first
+    tryMLModelMatch()?.let { ayahIndex ->
+      // Strip bismillah if flag is set
+      if (ayahIndex == 0) {
+        println("performFallbackMatch, voiceTextHasBesmillah = true")
+        voiceTextHasBesmillah = true
+        performFallbackMatch()
+        return
+      }
+      println("#coreml ML prediction accepted")
+      foundAyat.clear()
+      foundAyat.add(ayahIndex)
+      updateQuranText()
+      updateMatchedWords()
+      updatingFoundAyat = false
+      return
+    }
+
+    println("#coreml ML model failed or had low similarity score")
+
+    // Fallback to similarity matching
     var bestIndex: Int? = null
     var bestScore = 0.0
 
     quranLines.forEachIndexed { index, line ->
-      val lineNorm = line.normalizedArabic()
-      if (lineNorm.length >= normVoice.length) {
-        val prefix = lineNorm.take(normVoice.length + 2)
-        val score = normVoice.similarity(prefix)
-        if (score > bestScore) {
-          bestScore = score
-          bestIndex = index
-        }
-        if (score > 0.9) return@forEachIndexed
+      val ayahNorm = line.normalizedArabic()
+      val ayahPrefix = ayahNorm.take(textToPredict.length)
+      val textPrefix = textToPredict.take(ayahPrefix.length)
+      val similarity = textPrefix.similarity(ayahPrefix)
+
+      if (similarity > bestScore) {
+        bestScore = similarity
+        bestIndex = index
+      }
+      if (similarity > 0.9) {
+        println("Early break at index $index: $line")
+        println("  similarity: ${String.format("%.2f", similarity)}")
+        return@forEachIndexed
       }
     }
 
     bestIndex?.let {
-      foundAyat.clear()
-      foundAyat.add(it)
-      updateQuranText()
-      updateMatchedWords()
+      if (it > 0) {
+        println("performFallbackMatch bestIndex: $it")
+        println("performFallbackMatch bestIndex ayah: ${quranLines[it]}")
+        foundAyat.clear()
+        foundAyat.add(it)
+        updateQuranText()
+        updateMatchedWords()
+      }
     }
+    updatingFoundAyat = false
+  }
+
+  /**
+   * Try ML model prediction and validate with similarity check
+   * Returns ayah index if best match from top 5 ML predictions has similarity > 70%
+   */
+  private fun tryMLModelMatch(): Int? {
+    val mlModel = this.mlModel ?: return null
+
+    val prediction = mlModel.predict(textToPredict) ?: return null
+
+    println("ML Model prediction - Index: ${prediction.ayahIndex}, Probability: ${prediction.probability}")
+    println("Top 5 predictions:")
+    for ((index, prob) in prediction.top5) {
+      println("  [$index] ${String.format("%.2f%%", prob * 100)}: ${quranLines.getOrNull(index) ?: ""}")
+    }
+
+    // Check top 5 predictions and return the one with highest similarity to normalized voice
+    if (textToPredict.isEmpty()) {
+      println("textToPredict is empty, returning null")
+      return null
+    }
+
+    var bestMatch: Pair<Int, Double>? = null
+    var bestSimilarity = 0.0
+
+    for ((index, _) in prediction.top5) {
+      if (index < 0 || index >= quranLines.size) continue
+
+      val ayahNorm = quranLines[index].normalizedArabic()
+      val ayahPrefix = ayahNorm.take(textToPredict.length)
+      val textPrefix = textToPredict.take(ayahPrefix.length)
+      val similarity = textPrefix.similarity(ayahPrefix)
+
+      if (similarity > bestSimilarity) {
+        bestSimilarity = similarity
+        bestMatch = Pair(index, similarity)
+      }
+    }
+
+    bestMatch?.let { (index, similarity) ->
+      println("#coreml Best match: [$index] with ${String.format("%.2f", similarity)} similarity - ${quranLines[index]}")
+      if (similarity >= 0.7) {
+        return index
+      } else {
+        println("#coreml Best match rejected - similarity too low: ${String.format("%.2f", similarity)}")
+        return null
+      }
+    }
+
+    return null
   }
 
   private fun updateQuranText() {
     foundAyat.firstOrNull()?.let { firstIndex ->
       quranText = quranLines[firstIndex]
       if (foundAyat.size == 1) {
-        val endIndex = min(firstIndex + 200, quranLines.size)
+        println("updateQuranText firstIndex: $firstIndex")
+        println("updateQuranText quranLines[firstIndex]: ${quranLines[firstIndex]}")
+        val endIndex = min(firstIndex + 500, quranLines.size)
         val extraLines = quranLines.subList(firstIndex + 1, endIndex)
         quranText = (listOf(quranText) + extraLines).joinToString(" ")
       }
@@ -145,34 +326,59 @@ class MuhaffezViewModel : ViewModel() {
   fun updateMatchedWords() {
     if (foundAyat.size != 1) return
 
-    peekJob?.cancel()
-    peekJob = viewModelScope.launch {
-      delay(3000)
-      peekHelper()
+    var results = matchedWords.toMutableList()  // start with previous results
+    var quranWordsIndex = results.size - 1  // continue from last matched index
+    var voiceIndex = if (previousVoiceWordsCount > 1) previousVoiceWordsCount - 2 else previousVoiceWordsCount
+
+    println("voiceWords: $voiceWords")
+    var canAdvance = true
+    if (voiceIndex >= voiceWords.size) {
+      println("voiceIndex >= voiceWords.size")
     }
 
-    val results = mutableListOf<Pair<String, Boolean>>()
-    var quranWordsIndex = -1
-
-    for (voiceWord in voiceWords) {
-      quranWordsIndex++
-      if (quranWordsIndex >= quranWords.size) break
+    while (voiceIndex < voiceWords.size) {
+      val voiceWord = voiceWords[voiceIndex]
+      if (canAdvance) {
+        quranWordsIndex++
+        peekJob?.cancel()
+        peekJob = viewModelScope.launch {
+          delay(3000)
+          peekHelper()
+        }
+      }
+      canAdvance = true
+      if (quranWordsIndex >= quranWords.size) {
+        println("quranWordsIndex >= quranWords.size, voiceWord: $voiceWord")
+        break
+      }
 
       val qWord = quranWords[quranWordsIndex]
       val normQWord = qWord.normalizedArabic()
       val score = voiceWord.similarity(normQWord)
 
       if (score >= matchThreshold) {
+        println("Matched word, voiceWord: $voiceWord, qWord: $qWord")
         results.add(qWord to true)
-        continue
+      } else {
+        if (tryBackwardMatch(quranWordsIndex, voiceWord, results)) {
+          canAdvance = false
+        } else if (voiceWord.length > 3 && tryForwardMatch(quranWordsIndex, voiceWord, results)) {
+          // matched in forward search
+          quranWordsIndex = results.size - 1
+        } else {
+          if (score >= simiMatchThreshold) {
+            println("Simimatched, voiceWord: $voiceWord, qWord: $qWord")
+            results.add(qWord to true)
+          } else {
+            println("Unmatched, voiceWord: $voiceWord, qWord: $qWord")
+            canAdvance = false
+          }
+        }
       }
-
-      if (tryBackwardMatch(quranWordsIndex, voiceWord, results)) continue
-      if (tryForwardMatch(quranWordsIndex, voiceWord, results)) continue
-
-      results.add(qWord to true)
+      voiceIndex++
     }
     updateMatchedWords(results)
+    previousVoiceWordsCount = voiceWords.size
   }
 
   private fun tryBackwardMatch(
@@ -180,12 +386,11 @@ class MuhaffezViewModel : ViewModel() {
     voiceWord: String,
     results: MutableList<Pair<String, Boolean>>
   ): Boolean {
-    for (step in 1..3) {
+    for (step in 1..10) {
       if (index - step < 0) break
       val qWord = quranWords[index - step]
-      if (voiceWord.similarity(qWord.normalizedArabic()) > seekMatchThreshold) {
-        repeat(step) { results.removeLastOrNull() }
-        results.add(qWord to true)
+      if (voiceWord.similarity(qWord.normalizedArabic()) >= seekMatchThreshold) {
+        println("tryBackwardMatch, voiceWord: $voiceWord, qWord: $qWord")
         return true
       }
     }
@@ -197,15 +402,16 @@ class MuhaffezViewModel : ViewModel() {
     voiceWord: String,
     results: MutableList<Pair<String, Boolean>>
   ): Boolean {
-    for (step in 1..3) {
+    for (step in 1..17) {
       if (index + step >= quranWords.size) break
       val qWord = quranWords[index + step]
-      if (voiceWord.similarity(qWord.normalizedArabic()) > seekMatchThreshold) {
+      if (voiceWord.similarity(qWord.normalizedArabic()) >= seekMatchThreshold) {
         results.add(quranWords[index] to true)
         for (s in 1 until step) {
           results.add(quranWords[index + s] to true)
         }
         results.add(qWord to true)
+        println("tryForwardMatch, voiceWord: $voiceWord, qWord: $qWord")
         return true
       }
     }
@@ -223,5 +429,10 @@ class MuhaffezViewModel : ViewModel() {
       results.add(quranWords[quranWordsIndex + 1] to false)
       updateMatchedWords(results)
     }
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    mlModel?.close()
   }
 }

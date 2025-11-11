@@ -36,6 +36,10 @@ android {
   }
   buildFeatures {
     compose = true
+    mlModelBinding = true
+  }
+  androidResources {
+    noCompress += listOf("tflite")
   }
 }
 
@@ -52,6 +56,11 @@ dependencies {
   // Compose Material Icons Extended
   implementation(libs.androidx.material.icons.extended)
   implementation(libs.androidx.runtime.livedata)
+
+  // TensorFlow Lite for ML model inference
+  implementation("org.tensorflow:tensorflow-lite:2.14.0")
+  implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+  implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
 
   // Unit testing with JUnit 5
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
