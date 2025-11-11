@@ -31,8 +31,9 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val coroutineScope = rememberCoroutineScope()
 
   val configuration = LocalConfiguration.current
+  val screenWidthDp = configuration.screenWidthDp.dp
   val density = LocalDensity.current
-  val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+  val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
   LaunchedEffect(viewModel.currentPageIsRight) {
     val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
@@ -72,8 +73,8 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
       .horizontalScroll(scrollState, enabled = true)
       .fillMaxSize()
   ) {
-    PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(380.dp))
-    PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(380.dp))
+    PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
+    PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(screenWidthDp))
   }
 }
 
@@ -104,7 +105,7 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 12.dp),
+          .padding(top = 30.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (true) { //(pageModel.pageNumber > 0) {

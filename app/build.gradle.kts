@@ -18,9 +18,10 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     // Enable 16KB page size support for Android 15+ devices
+    // Only include arm64-v8a to avoid TensorFlow Lite alignment issues
     ndk {
       //noinspection ChromeOsAbiSupport
-      abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+      abiFilters += listOf("arm64-v8a")
     }
   }
 
@@ -71,9 +72,16 @@ dependencies {
   implementation(libs.androidx.runtime.livedata)
 
   // TensorFlow Lite for ML model inference (updated for 16KB page size support)
-  implementation("org.tensorflow:tensorflow-lite:2.16.1")
-  implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-  implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
+  implementation("org.tensorflow:tensorflow-lite:2.17.0")
+  implementation("org.tensorflow:tensorflow-lite-support:0.4.4") {
+    exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
+    exclude(group = "org.tensorflow", module = "tensorflow-lite")
+  }
+  implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4") {
+    exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
+    exclude(group = "org.tensorflow", module = "tensorflow-lite")
+  }
+  implementation("org.tensorflow:tensorflow-lite-gpu:2.17.0")
 
   // Unit testing with JUnit 5
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
