@@ -16,6 +16,12 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    // Enable 16KB page size support for Android 15+ devices
+    ndk {
+      //noinspection ChromeOsAbiSupport
+      abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+    }
   }
 
   buildTypes {
@@ -41,6 +47,13 @@ android {
   androidResources {
     noCompress += listOf("tflite")
   }
+
+  packaging {
+    jniLibs {
+      // Enable 16 KB page alignment for native libraries
+      useLegacyPackaging = false
+    }
+  }
 }
 
 dependencies {
@@ -57,8 +70,8 @@ dependencies {
   implementation(libs.androidx.material.icons.extended)
   implementation(libs.androidx.runtime.livedata)
 
-  // TensorFlow Lite for ML model inference
-  implementation("org.tensorflow:tensorflow-lite:2.14.0")
+  // TensorFlow Lite for ML model inference (updated for 16KB page size support)
+  implementation("org.tensorflow:tensorflow-lite:2.16.1")
   implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
   implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
 
