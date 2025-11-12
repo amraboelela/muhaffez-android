@@ -35,7 +35,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val density = LocalDensity.current
   val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
-  LaunchedEffect(viewModel.currentPageIsRight) {
+  LaunchedEffect(viewModel.currentPageIsRight, viewModel.rightPage, viewModel.leftPage) {
     val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
     scrollState.animateScrollTo(offset.toInt())
   }
