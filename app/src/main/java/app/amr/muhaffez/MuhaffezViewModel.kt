@@ -88,8 +88,17 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   }
 
   var previousVoiceWordsCount = 0
-  var foundAyat = mutableListOf<Int>()
-  var pageCurrentLineIndex = 0
+
+  private var _foundAyat = mutableStateOf(listOf<Int>())
+  var foundAyat: List<Int>
+    get() = _foundAyat.value
+    set(value) {
+      _foundAyat.value = value
+      pageCurrentLineIndex = value.firstOrNull() ?: 0
+    }
+
+  var pageCurrentLineIndex by mutableStateOf(0)
+
   var pageMatchedWordsIndex = 0
 
   var quranText = ""
@@ -102,16 +111,11 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var voiceWords = listOf<String>()
 
   var tempPage = PageModel()
-  //var tempRightPage = PageModel()
-  //var tempLeftPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
   var leftPage by mutableStateOf(PageModel())
   var currentPageIsRight by mutableStateOf(true)
     private set
   fun updateCurrentPageIsRight(value: Boolean) {
-    if (!value) {
-      tempPage.reset()
-    }
     if (!currentPageIsRight && value) {
       rightPage.reset()
     }
@@ -130,14 +134,12 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   // --- Actions ---
   fun resetData() {
     debounceJob?.cancel()
-    foundAyat.clear()
+    foundAyat = emptyList()
     quranText = ""
     updateMatchedWords(emptyList())
     voiceText = ""
     currentPageIsRight = true
     tempPage.reset()
-    //tempRightPage.reset()
-    //tempLeftPage.reset()
     rightPage.reset()
     leftPage.reset()
     pageCurrentLineIndex = 0
@@ -155,7 +157,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     debounceJob?.cancel()
     if (foundAyat.size == 1) return
 
-    foundAyat.clear()
+    foundAyat = emptyList()
     println("updateFoundAyat textToPredict: $textToPredict")
     if (textToPredict.length <= 10) {
       println("updateFoundAyat textToPredict.length <= 10")
@@ -173,7 +175,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
             return
           }
         } else {
-          foundAyat.add(index)
+          foundAyat = foundAyat + index
         }
       }
     }
@@ -214,8 +216,8 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
         return
       }
       println("#coreml ML prediction accepted")
-      foundAyat.clear()
-      foundAyat.add(ayahIndex)
+      foundAyat = emptyList()
+      foundAyat = foundAyat + ayahIndex
       updateQuranText()
       updateMatchedWords()
       updatingFoundAyat = false
@@ -249,8 +251,8 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
       if (it > 0) {
         println("performFallbackMatch bestIndex: $it")
         println("performFallbackMatch bestIndex ayah: ${quranLines[it]}")
-        foundAyat.clear()
-        foundAyat.add(it)
+        foundAyat = emptyList()
+        foundAyat = foundAyat + it
         updateQuranText()
         updateMatchedWords()
       }

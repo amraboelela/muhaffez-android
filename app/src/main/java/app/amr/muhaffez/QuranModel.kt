@@ -165,9 +165,11 @@ class QuranModel private constructor(context: Context) {
   }
 
   fun rub3Number(index: Int): Int {
-    if (rub3Markers.isEmpty() || index < 0 || index >= quranLines.size) return 0
+    if (rub3Markers.isEmpty() || index < 0 || index >= quranLines.size)
+      return 0
     for ((rub3Index, marker) in rub3Markers.withIndex()) {
-      if (index < marker) return rub3Index + 1
+      if (index < marker)
+        return rub3Index + 1
     }
     return rub3Markers.size + 1
   }
@@ -188,7 +190,8 @@ class QuranModel private constructor(context: Context) {
   fun surahNameAt(index: Int): String {
     if (surahMarkers.isEmpty() || index < 0 || index >= quranLines.size) return ""
     for (i in surahMarkers.indices.reversed()) {
-      if (index >= surahMarkers[i]) return surahs[i + 1].second
+      if (index >= surahMarkers[i])
+        return surahs[i + 1].second
     }
     return surahs[0].second
   }
