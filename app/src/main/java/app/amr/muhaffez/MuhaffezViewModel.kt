@@ -102,8 +102,8 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var voiceWords = listOf<String>()
 
   var tempPage = PageModel()
-  var tempRightPage = PageModel()
-  var tempLeftPage = PageModel()
+  //var tempRightPage = PageModel()
+  //var tempLeftPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
   var leftPage by mutableStateOf(PageModel())
   var currentPageIsRight by mutableStateOf(true)
@@ -136,8 +136,8 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     voiceText = ""
     currentPageIsRight = true
     tempPage.reset()
-    tempRightPage.reset()
-    tempLeftPage.reset()
+    //tempRightPage.reset()
+    //tempLeftPage.reset()
     rightPage.reset()
     leftPage.reset()
     pageCurrentLineIndex = 0
