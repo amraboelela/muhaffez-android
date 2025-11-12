@@ -82,13 +82,24 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var isRecording by mutableStateOf(false)
   var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
     private set
-  fun updateMatchedWords(value: List<Pair<String, Boolean>>) {
+
+  // Update matchedWords and automatically call updatePages() (mimics Swift's didSet)
+  private fun setMatchedWordsList(value: List<Pair<String, Boolean>>) {
     matchedWords = value
     updatePages()
   }
 
   var previousVoiceWordsCount = 0
-  var foundAyat = mutableListOf<Int>()
+
+  var foundAyat by mutableStateOf(listOf<Int>())
+    private set
+
+  // Update foundAyat and automatically update pageCurrentLineIndex (mimics Swift's didSet)
+  private fun setFoundAyatList(value: List<Int>) {
+    foundAyat = value
+    pageCurrentLineIndex = foundAyat.firstOrNull() ?: 0
+  }
+
   var pageCurrentLineIndex = 0
   var pageMatchedWordsIndex = 0
 
@@ -106,14 +117,12 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var tempLeftPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
   var leftPage by mutableStateOf(PageModel())
+
   var currentPageIsRight by mutableStateOf(true)
     private set
   fun updateCurrentPageIsRight(value: Boolean) {
-    if (!value) {
-      tempPage.reset()
-    }
     if (!currentPageIsRight && value) {
-      rightPage.reset()
+      rightPage = PageModel()  // Create new instance to trigger recomposition
     }
     currentPageIsRight = value
   }
@@ -130,17 +139,16 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   // --- Actions ---
   fun resetData() {
     debounceJob?.cancel()
-    foundAyat.clear()
+    setFoundAyatList(emptyList())
     quranText = ""
-    updateMatchedWords(emptyList())
+    setMatchedWordsList(emptyList())
     voiceText = ""
     currentPageIsRight = true
     tempPage.reset()
     tempRightPage.reset()
     tempLeftPage.reset()
-    rightPage.reset()
-    leftPage.reset()
-    pageCurrentLineIndex = 0
+    rightPage = PageModel()  // Create new instance to trigger recomposition
+    leftPage = PageModel()  // Create new instance to trigger recomposition
     pageMatchedWordsIndex = 0
     previousVoiceWordsCount = 0
     voiceTextHasBesmillah = false
@@ -155,7 +163,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     debounceJob?.cancel()
     if (foundAyat.size == 1) return
 
-    foundAyat.clear()
+    setFoundAyatList(emptyList())
     println("updateFoundAyat textToPredict: $textToPredict")
     if (textToPredict.length <= 10) {
       println("updateFoundAyat textToPredict.length <= 10")
@@ -163,6 +171,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     }
 
     // Fast prefix check
+    val tempFoundAyat = mutableListOf<Int>()
     quranLines.forEachIndexed { index, line ->
       val normLine = line.normalizedArabic()
       if (normLine.startsWith(textToPredict) || textToPredict.startsWith(normLine)) {
@@ -173,10 +182,11 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
             return
           }
         } else {
-          foundAyat.add(index)
+          tempFoundAyat.add(index)
         }
       }
     }
+    setFoundAyatList(tempFoundAyat)
 
     println("updateFoundAyat foundAyat: $foundAyat")
     if (foundAyat.isNotEmpty()) {
@@ -214,8 +224,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
         return
       }
       println("#coreml ML prediction accepted")
-      foundAyat.clear()
-      foundAyat.add(ayahIndex)
+      setFoundAyatList(listOf(ayahIndex))
       updateQuranText()
       updateMatchedWords()
       updatingFoundAyat = false
@@ -249,8 +258,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
       if (it > 0) {
         println("performFallbackMatch bestIndex: $it")
         println("performFallbackMatch bestIndex ayah: ${quranLines[it]}")
-        foundAyat.clear()
-        foundAyat.add(it)
+        setFoundAyatList(listOf(it))
         updateQuranText()
         updateMatchedWords()
       }
@@ -377,7 +385,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
       }
       voiceIndex++
     }
-    updateMatchedWords(results)
+    setMatchedWordsList(results)
     previousVoiceWordsCount = voiceWords.size
   }
 
@@ -427,7 +435,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     if (quranWordsIndex + 2 < quranWords.size) {
       results.add(quranWords[quranWordsIndex] to false)
       results.add(quranWords[quranWordsIndex + 1] to false)
-      updateMatchedWords(results)
+      setMatchedWordsList(results)
     }
   }
 
