@@ -12,7 +12,6 @@ fun MuhaffezViewModel.updatePages() {
   if (pageMatchedWordsIndex >= matchedWords.size) {
     return
   }
-  println("updatePages: pageCurrentLineIndex=$pageCurrentLineIndex, foundAyat=$foundAyat")
   tempPage.text = AnnotatedString.Builder()
   var currentLineIndex = pageCurrentLineIndex
   var wordsInCurrentLine = wordsForLine(quranLines, currentLineIndex)
@@ -20,16 +19,10 @@ fun MuhaffezViewModel.updatePages() {
   val matchedWordsIndex = pageMatchedWordsIndex
 
   fun advanceLine() {
-    // Update tempPage info before copying
-    quranModel.updatePages(this@updatePages, currentLineIndex)
-    println("advanceLine: before copy tempPage - page=${tempPage.pageNumber}, surah=${tempPage.surahName}, juz=${tempPage.juzNumber}")
-
     if (quranModel.isRightPage(currentLineIndex)) {
       rightPage = tempPage.deepCopy()
-      println("advanceLine: updated rightPage - page=${rightPage.pageNumber}, surah=${rightPage.surahName}, juz=${rightPage.juzNumber}")
     } else {
       leftPage = tempPage.deepCopy()
-      println("advanceLine: updated leftPage - page=${leftPage.pageNumber}, surah=${leftPage.surahName}, juz=${leftPage.juzNumber}")
     }
     currentLineIndex += 1
     wordsInCurrentLine = wordsForLine(quranLines, currentLineIndex)
@@ -41,13 +34,12 @@ fun MuhaffezViewModel.updatePages() {
   }
 
   quranModel.updatePages(this, currentLineIndex)
-  println("updatePages: initial tempPage - page=${tempPage.pageNumber}, surah=${tempPage.surahName}, juz=${tempPage.juzNumber}")
 
   for (i in matchedWordsIndex until matchedWords.size) {
     if (currentPageIsRight != quranModel.isRightPage(currentLineIndex)) {
       pageCurrentLineIndex = currentLineIndex
       pageMatchedWordsIndex = i
-      tempPage.text = AnnotatedString.Builder()
+      tempPage.reset()
     }
     quranModel.updatePageModelsIfNeeded(this, currentLineIndex)
 
@@ -74,16 +66,10 @@ fun MuhaffezViewModel.updatePages() {
     }
   }
 
-  // Update tempPage info one final time before copying
-  quranModel.updatePages(this, currentLineIndex)
-  println("updatePages: before final copy tempPage - page=${tempPage.pageNumber}, surah=${tempPage.surahName}, juz=${tempPage.juzNumber}")
-
   if (quranModel.isRightPage(currentLineIndex)) {
     rightPage = tempPage.deepCopy()
-    println("updatePages: final rightPage - page=${rightPage.pageNumber}, surah=${rightPage.surahName}, juz=${rightPage.juzNumber}")
   } else {
     leftPage = tempPage.deepCopy()
-    println("updatePages: final leftPage - page=${leftPage.pageNumber}, surah=${leftPage.surahName}, juz=${leftPage.juzNumber}")
   }
 }
 

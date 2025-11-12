@@ -206,11 +206,9 @@ class QuranModel private constructor(context: Context) {
   }
 
   fun updatePages(viewModel: MuhaffezViewModel, index: Int) {
-    println("QuranModel.updatePages: index=$index, quranLines.size=${quranLines.size}, pageMarkers.size=${pageMarkers.size}")
     viewModel.tempPage.juzNumber = juzNumber(index)
     viewModel.tempPage.surahName = surahNameAt(index)
     viewModel.tempPage.pageNumber = pageNumber(index)
-    println("QuranModel.updatePages: result - page=${viewModel.tempPage.pageNumber}, surah=${viewModel.tempPage.surahName}, juz=${viewModel.tempPage.juzNumber}")
     viewModel.updateCurrentPageIsRight(isRightPage(index))
   }
 
