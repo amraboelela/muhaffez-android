@@ -37,9 +37,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 
   LaunchedEffect(viewModel.currentPageIsRight, viewModel.rightPage, viewModel.leftPage) {
     // Wait for layout to complete by checking if scroll state is ready
-    while (scrollState.maxValue == 0) {
-      kotlinx.coroutines.delay(10)
-    }
+    kotlinx.coroutines.delay(50)
     val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
     println("TwoPagesView: Scrolling - currentPageIsRight=${viewModel.currentPageIsRight}, offset=$offset, maxValue=${scrollState.maxValue}")
     scrollState.animateScrollTo(offset.toInt())
