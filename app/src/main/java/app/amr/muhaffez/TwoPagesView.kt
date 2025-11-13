@@ -39,7 +39,6 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
     // Wait for layout to complete by checking if scroll state is ready
     kotlinx.coroutines.delay(50)
     val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
-    println("TwoPagesView: Scrolling - currentPageIsRight=${viewModel.currentPageIsRight}, offset=$offset, maxValue=${scrollState.maxValue}")
     scrollState.animateScrollTo(offset.toInt())
   }
 
@@ -75,6 +74,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
     modifier = Modifier
       .horizontalScroll(scrollState, enabled = true)
       .fillMaxSize()
+      .padding(bottom = 120.dp)  // Add padding to avoid mic button overlap
   ) {
     PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
     PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(screenWidthDp))

@@ -19,6 +19,7 @@ class MainActivity : ComponentActivity() {
 
   private lateinit var recognizer: ArabicSpeechRecognizer
   private lateinit var viewModel: MuhaffezViewModel
+  private var wasRecordingBeforeBackground = false
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -52,6 +53,33 @@ class MainActivity : ComponentActivity() {
     } else {
       requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
+  }
+
+  override fun onPause() {
+    super.onPause()
+    // Save recording state and stop recording when app goes to background
+    wasRecordingBeforeBackground = viewModel.isRecording
+    if (wasRecordingBeforeBackground) {
+      recognizer.stopRecording()
+      viewModel.isRecording = false
+      println("MainActivity: Stopped recording due to app going to background")
+    }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // Optionally resume recording when app comes back to foreground
+    // Commented out for now - user can manually restart if needed
+    // if (wasRecordingBeforeBackground) {
+    //   recognizer.startRecording()
+    //   viewModel.isRecording = true
+    //   println("MainActivity: Resumed recording as app came to foreground")
+    // }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    recognizer.destroy()
   }
 }
 

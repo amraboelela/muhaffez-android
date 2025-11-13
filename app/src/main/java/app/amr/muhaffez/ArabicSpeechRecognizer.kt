@@ -2,6 +2,7 @@ package app.amr.muhaffez
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,16 +17,55 @@ class ArabicSpeechRecognizer(private val context: Context) {
   private var speechRecognizer: SpeechRecognizer? = null
   private var isListening = false
   private var shouldContinueListening = false
+  private var audioManager: AudioManager? = null
+  private var originalNotificationVolume: Int = 0
+  private var originalSystemVolume: Int = 0
 
   private val _voiceText = MutableLiveData<String>()
   val voiceText: LiveData<String> = _voiceText
 
   private val handler = Handler(Looper.getMainLooper())
 
+  init {
+    audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+  }
+
+  private fun muteBeepSound() {
+    try {
+      audioManager?.let {
+        // Save notification and system stream volumes
+        originalNotificationVolume = it.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+        originalSystemVolume = it.getStreamVolume(AudioManager.STREAM_SYSTEM)
+
+        // Mute only notification and system streams (not music)
+        it.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0)
+        it.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0)
+      }
+    } catch (e: Exception) {
+      println("recognizedText, Failed to mute beep sound: ${e.message}")
+    }
+  }
+
+  private fun unmuteBeepSound() {
+    try {
+      audioManager?.let {
+        // Restore notification and system stream volumes
+        it.setStreamVolume(AudioManager.STREAM_NOTIFICATION, originalNotificationVolume, 0)
+        it.setStreamVolume(AudioManager.STREAM_SYSTEM, originalSystemVolume, 0)
+      }
+    } catch (e: Exception) {
+      println("recognizedText, Failed to unmute beep sound: ${e.message}")
+    }
+  }
+
   // Create the listener once
   private val recognitionListener = object : RecognitionListener {
     override fun onReadyForSpeech(params: Bundle?) {
       println("recognizedText, Ready for speech")
+      // Unmute after the start beep
+      handler.postDelayed({
+        unmuteBeepSound()
+      }, 100)
     }
 
     override fun onBeginningOfSpeech() {
@@ -40,6 +80,8 @@ class ArabicSpeechRecognizer(private val context: Context) {
 
     override fun onEndOfSpeech() {
       println("recognizedText, End of speech")
+      // Mute before the end beep
+      muteBeepSound()
       isListening = false
       // Don't set shouldContinueListening to false - we want to continue
     }
@@ -180,6 +222,9 @@ class ArabicSpeechRecognizer(private val context: Context) {
         putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1000L)
       }
 
+      // Mute before starting to suppress the start beep
+      muteBeepSound()
+
       isListening = true
       speechRecognizer?.startListening(intent)
       println("recognizedText, Started listening for Arabic speech")
@@ -199,8 +244,13 @@ class ArabicSpeechRecognizer(private val context: Context) {
 
     shouldContinueListening = false
     isListening = false
+    muteBeepSound()  // Mute before stopping to suppress the stop beep
     speechRecognizer?.stopListening()
     println("recognizedText, Stopped listening")
+    // Unmute after a delay to restore volume
+    handler.postDelayed({
+      unmuteBeepSound()
+    }, 500)
   }
 
   fun destroy() {
@@ -208,6 +258,7 @@ class ArabicSpeechRecognizer(private val context: Context) {
     isListening = false
     speechRecognizer?.destroy()
     speechRecognizer = null
+    unmuteBeepSound()  // Ensure we restore volume
     println("recognizedText, Speech recognizer destroyed")
   }
 }
