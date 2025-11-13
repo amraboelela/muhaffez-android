@@ -345,7 +345,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
         quranWordsIndex++
         peekJob?.cancel()
         peekJob = viewModelScope.launch {
-          delay(3000)
+          delay(5000)
           peekHelper()
         }
       }

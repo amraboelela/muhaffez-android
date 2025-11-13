@@ -7,6 +7,9 @@ import android.text.style.AbsoluteSizeSpan
 import android.graphics.Color
 import android.text.style.UnderlineSpan
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.unit.sp
 
 fun MuhaffezViewModel.updatePages() {
   if (pageMatchedWordsIndex >= matchedWords.size) {
@@ -75,12 +78,13 @@ fun MuhaffezViewModel.updatePages() {
 
 // --- Helpers ---
 
-private fun attributedWord(word: String, matched: Boolean): CharSequence {
-  val spannable = SpannableStringBuilder(word)
-  val color = if (matched) Color.BLACK else Color.RED
-  spannable.setSpan(ForegroundColorSpan(color), 0, word.length, 0)
-  spannable.setSpan(AbsoluteSizeSpan(35, true), 0, word.length, 0)
-  return spannable
+private fun attributedWord(word: String, matched: Boolean): AnnotatedString {
+  return AnnotatedString(
+    text = word,
+    spanStyle = SpanStyle(
+      color = if (matched) ComposeColor.Black else ComposeColor.Red
+    )
+  )
 }
 
 private fun wordsForLine(lines: List<String>, index: Int): List<String> {
