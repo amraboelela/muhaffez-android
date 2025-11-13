@@ -6,7 +6,8 @@ data class PageModel(
   var juzNumber: Int = 0,
   var surahName: String = "",
   var pageNumber: Int = 0,
-  var text: AnnotatedString.Builder = AnnotatedString.Builder()
+  var text: AnnotatedString.Builder = AnnotatedString.Builder(),
+  var isFirstPage: Boolean = false
 ) {
   val annotatedString: AnnotatedString
     get() = text.toAnnotatedString()
@@ -19,6 +20,7 @@ data class PageModel(
     surahName = ""
     pageNumber = 0
     text = AnnotatedString.Builder()
+    isFirstPage = false
   }
 
   // Use a different name like `deepCopy()` to avoid the conflict.
@@ -29,7 +31,8 @@ data class PageModel(
       juzNumber = juzNumber,
       surahName = surahName,
       pageNumber = pageNumber,
-      text = newTextBuilder
+      text = newTextBuilder,
+      isFirstPage = isFirstPage
     )
   }
 }

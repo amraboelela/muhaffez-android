@@ -129,7 +129,9 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.SpaceBetween
       ) {
-        Spacer(modifier = Modifier.weight(1f))
+        if (pageModel.isFirstPage) {
+          Spacer(modifier = Modifier.weight(1f))
+        }
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
           Text(
             pageModel.annotatedString,

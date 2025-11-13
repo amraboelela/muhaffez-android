@@ -140,6 +140,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
     voiceText = ""
     currentPageIsRight = true
     tempPage.reset()
+    tempPage.isFirstPage = true
     rightPage.reset()
     leftPage.reset()
     pageCurrentLineIndex = 0
