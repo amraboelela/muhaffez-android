@@ -80,6 +80,7 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 //    فلولا اذ جاءهم باسنا تضرعوا ولكن قست قلوبهم وزين لهم الشيطان ما كانوا يعملون
 //        فلما نسوا ما ذكروا به فتحنا عليهم ابواب كل شيء حتى اذا فرحوا
 //        بما اوتوا اخذناهم بغتة فاذا هم مبلسون
+//        فقطع دابر القوم الذين ظلموا والحمد لله رب العالمين
 //  """.trimIndent())
 
     // بما اوتوا اخذناهم بغتة فاذا هم مبلسون
@@ -122,7 +123,7 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(top = 30.dp),
+          .padding(top = 30.dp, start = 8.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (pageModel.pageNumber > 0) {
