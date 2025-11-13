@@ -1,5 +1,6 @@
 package app.amr.muhaffez
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -22,13 +23,15 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
 
 @Composable
 fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val scrollState = rememberScrollState()
-  val coroutineScope = rememberCoroutineScope()
+  //val coroutineScope = rememberCoroutineScope()
 
   val configuration = LocalConfiguration.current
   val screenWidthDp = configuration.screenWidthDp.dp
@@ -133,16 +136,15 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           Spacer(modifier = Modifier.weight(1f))
         }
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-          Text(
-            pageModel.annotatedString,
-            fontSize = 24.sp,
+          AutoSizeText(
+            text = pageModel.annotatedString,
             modifier = Modifier
               .fillMaxWidth()
               .padding(horizontal = 8.dp),
             textAlign = TextAlign.Start,
-            lineHeight = (24 + 8).sp,  // fontSize + lineSpacing
-            softWrap = true,
-            maxLines = Int.MAX_VALUE
+            fontSize = 24.sp,
+            lineHeight = 32.sp,
+            minimumScaleFactor = 0.5f
           )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -158,6 +160,72 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           .padding(top = 10.dp)
       )
     }
+  }
+}
+
+@Composable
+fun AutoSizeText(
+  text: AnnotatedString,
+  modifier: Modifier = Modifier,
+  textAlign: TextAlign = TextAlign.Start,
+  fontSize: androidx.compose.ui.unit.TextUnit = 24.sp,
+  lineHeight: androidx.compose.ui.unit.TextUnit = 32.sp,
+  minimumScaleFactor: Float = 0.5f,
+) {
+  var adjustedFontSize by remember { mutableStateOf(fontSize) }
+  val textMeasurer = rememberTextMeasurer()
+
+  BoxWithConstraints(modifier = modifier) {
+    val density = LocalDensity.current
+    val maxWidthPx = with(density) { maxWidth.toPx() }.toInt()
+    val maxHeightPx = with(density) { maxHeight.toPx() }.toInt().takeIf { it > 0 } ?: Int.MAX_VALUE
+
+    LaunchedEffect(text.text, maxWidthPx, maxHeightPx) {
+      if (maxWidthPx <= 0) return@LaunchedEffect
+
+      val minFont = fontSize.value * minimumScaleFactor
+      var low = minFont
+      var high = fontSize.value
+      var bestFit = low
+
+      while (high - low > 0.5f) {
+        val test = (low + high) / 2f
+        val result = textMeasurer.measure(
+          text = text,
+          style = TextStyle(
+            fontSize = test.sp,
+            lineHeight = (lineHeight.value * test / fontSize.value).sp,
+            textAlign = textAlign
+          ),
+          constraints = Constraints(
+            maxWidth = maxWidthPx,
+            maxHeight = maxHeightPx
+          )
+        )
+
+        // Check if text actually fits in the constraints
+        // hasVisualOverflow checks if text was clipped due to maxLines or size constraints
+        val fits = !result.hasVisualOverflow
+        if (fits) {
+          low = test
+          bestFit = test
+        } else {
+          high = test
+        }
+      }
+
+      adjustedFontSize = bestFit.sp
+    }
+
+    Text(
+      text = text,
+      fontSize = adjustedFontSize,
+      lineHeight = (lineHeight.value * adjustedFontSize.value / fontSize.value).sp,
+      textAlign = textAlign,
+      modifier = Modifier.fillMaxWidth(),
+      softWrap = true,
+      maxLines = Int.MAX_VALUE
+    )
   }
 }
 

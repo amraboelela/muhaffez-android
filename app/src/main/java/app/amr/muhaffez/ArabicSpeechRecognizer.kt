@@ -120,18 +120,15 @@ class ArabicSpeechRecognizer(private val context: Context) {
         }
         SpeechRecognizer.ERROR_RECOGNIZER_BUSY,
         SpeechRecognizer.ERROR_SERVER,
+        SpeechRecognizer.ERROR_NETWORK,
+        SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
         11 -> {
           // Recoverable errors - just restart (error 11 is often transient)
+          // Network errors are also recoverable - wifi might come back
           println("recognizedText, Restarting recognition after recoverable error: $error")
           handler.postDelayed({
             startRecognition()
-          }, 500)
-        }
-        SpeechRecognizer.ERROR_NETWORK,
-        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> {
-          // Network errors - stop and notify user
-          shouldContinueListening = false
-          println("recognizedText, $errorMessage - Please check your internet connection")
+          }, 1000)  // Longer delay for network errors
         }
         SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> {
           // Permission errors - stop and notify user
