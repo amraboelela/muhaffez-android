@@ -35,10 +35,8 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val density = LocalDensity.current
   val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
-  // Scroll to the correct page whenever page objects change (matches Swift's .onChange)
   LaunchedEffect(viewModel.currentPageIsRight, viewModel.rightPage, viewModel.leftPage) {
     val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
-    println("TwoPagesView: Page changed, scrolling to ${if (viewModel.currentPageIsRight) "RIGHT" else "LEFT"} page, offset=$offset")
     scrollState.animateScrollTo(offset.toInt())
   }
 
