@@ -1,6 +1,5 @@
 package app.amr.muhaffez
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -27,11 +24,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.TextUnit
 
 @Composable
 fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val scrollState = rememberScrollState()
-  //val coroutineScope = rememberCoroutineScope()
 
   val configuration = LocalConfiguration.current
   val screenWidthDp = configuration.screenWidthDp.dp
@@ -72,12 +69,26 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
 //        الم ذٰلِكَ الكِتابُ لا رَيبَ فيهِ هُدًى لِلمُتَّقينَ
 //    """.trimIndent())
 
+    viewModel.updateVoiceText("""
+    انما يستجيب الذين يسمعون والموتى يبعثهم الله ثم اليه يرجعون
+        وقالوا لولا نزل عليه اية من ربه قل ان الله قادر على ان ينزل اية ولكن اكثرهم لا يعلمون
+    وما من دابة في الارض ولا طائر يطير بجناحيه الا امم امثالكم ما فرطنا في الكتاب من شيء ثم الى ربهم يحشرون
+        والذين كذبوا باياتنا صم وبكم في الظلمات من يشا الله يضلله ومن يشا يجعله على صراط مستقيم
+    قل ارايتكم ان اتاكم عذاب الله او اتتكم الساعة اغير الله تدعون ان كنتم صادقين
+    بل اياه تدعون فيكشف ما تدعون اليه ان شاء وتنسون ما تشركون
+        ولقد ارسلنا الى امم من قبلك فاخذناهم بالباساء والضراء لعلهم يتضرعون
+    فلولا اذ جاءهم باسنا تضرعوا ولكن قست قلوبهم وزين لهم الشيطان ما كانوا يعملون
+        فلما نسوا ما ذكروا به فتحنا عليهم ابواب كل شيء حتى اذا فرحوا
+        بما اوتوا اخذناهم بغتة فاذا هم مبلسون
+  """.trimIndent())
+
+    // بما اوتوا اخذناهم بغتة فاذا هم مبلسون
   }
   Row(
     modifier = Modifier
       .horizontalScroll(scrollState, enabled = true)
       .fillMaxSize()
-      .padding(bottom = 120.dp)  // Add padding to avoid mic button overlap
+      .padding(bottom = 80.dp)  // Add padding to avoid mic button overlap
   ) {
     PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
     PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(screenWidthDp))
@@ -168,8 +179,8 @@ fun AutoSizeText(
   text: AnnotatedString,
   modifier: Modifier = Modifier,
   textAlign: TextAlign = TextAlign.Start,
-  fontSize: androidx.compose.ui.unit.TextUnit = 24.sp,
-  lineHeight: androidx.compose.ui.unit.TextUnit = 32.sp,
+  fontSize: TextUnit = 24.sp,
+  lineHeight: TextUnit = 32.sp,
   minimumScaleFactor: Float = 0.5f,
 ) {
   var adjustedFontSize by remember { mutableStateOf(fontSize) }
@@ -203,9 +214,8 @@ fun AutoSizeText(
           )
         )
 
-        // Check if text actually fits in the constraints
-        // hasVisualOverflow checks if text was clipped due to maxLines or size constraints
-        val fits = !result.hasVisualOverflow
+        // Add a small buffer to account for font descent and rounding issues
+        val fits = result.size.width <= maxWidthPx && result.size.height < maxHeightPx - 45
         if (fits) {
           low = test
           bestFit = test
@@ -226,13 +236,5 @@ fun AutoSizeText(
       softWrap = true,
       maxLines = Int.MAX_VALUE
     )
-  }
-}
-
-@Preview(showBackground = true, widthDp = 800, heightDp = 600)
-@Composable
-fun TwoPagesPreview() {
-  MaterialTheme {
-    TwoPagesView(viewModel = MuhaffezViewModel())
   }
 }
