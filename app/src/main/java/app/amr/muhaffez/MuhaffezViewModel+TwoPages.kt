@@ -66,10 +66,19 @@ fun MuhaffezViewModel.updatePages() {
     }
   }
 
+  // Update tempPage info one final time before copying
+  quranModel.updatePages(this, currentLineIndex)
+  println("updatePages: before final copy tempPage - page=${tempPage.pageNumber}, surah=${tempPage.surahName}, juz=${tempPage.juzNumber}")
+
+  // Update currentPageIsRight BEFORE updating the page objects
+  updateCurrentPageIsRight(quranModel.isRightPage(currentLineIndex))
+
   if (quranModel.isRightPage(currentLineIndex)) {
     rightPage = tempPage.deepCopy()
+    println("updatePages: final rightPage - page=${rightPage.pageNumber}, surah=${rightPage.surahName}, juz=${rightPage.juzNumber}")
   } else {
     leftPage = tempPage.deepCopy()
+    println("updatePages: final leftPage - page=${leftPage.pageNumber}, surah=${leftPage.surahName}, juz=${leftPage.juzNumber}")
   }
 }
 

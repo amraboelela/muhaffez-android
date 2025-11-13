@@ -93,8 +93,16 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var foundAyat: List<Int>
     get() = _foundAyat.value
     set(value) {
+      println("foundAyat setter called with value: $value")
       _foundAyat.value = value
-      pageCurrentLineIndex = value.firstOrNull() ?: 0
+      val index = value.firstOrNull() ?: 0
+      pageCurrentLineIndex = index
+      // Update currentPageIsRight immediately when we find an ayah
+      if (index > 0) {
+        val isRight = quranModel.isRightPage(index)
+        println("foundAyat setter: calling updateCurrentPageIsRight($isRight) for ayah index $index")
+        updateCurrentPageIsRight(isRight)
+      }
     }
 
   var pageCurrentLineIndex by mutableStateOf(0)
@@ -116,10 +124,12 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var currentPageIsRight by mutableStateOf(true)
     private set
   fun updateCurrentPageIsRight(value: Boolean) {
+    println("updateCurrentPageIsRight called: currentPageIsRight=$currentPageIsRight -> $value")
     if (!currentPageIsRight && value) {
       rightPage.reset()
     }
     currentPageIsRight = value
+    println("updateCurrentPageIsRight done: currentPageIsRight=$currentPageIsRight")
   }
   val quranModel: QuranModel by lazy { QuranModel.shared }
   val quranLines: List<String> by lazy { quranModel.quranLines }
