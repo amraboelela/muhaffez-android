@@ -113,14 +113,14 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           .padding(top = 30.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
-        if (true) { //(pageModel.pageNumber > 0) {
+        if (pageModel.pageNumber > 0) {
           Text("${pageModel.pageNumber}", fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
           Text(pageModel.surahName, fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
           Text("جزء ${pageModel.juzNumber}", fontSize = 20.sp)
         } else {
-          Text("Nothing")
+          Text(" ")
         }
       }
 
@@ -136,8 +136,13 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
           Text(
             pageModel.annotatedString,
             fontSize = 24.sp,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 8.dp),
+            textAlign = TextAlign.Start,
+            lineHeight = (24 + 8).sp,  // fontSize + lineSpacing
+            softWrap = true,
+            maxLines = Int.MAX_VALUE
           )
         }
         Spacer(modifier = Modifier.weight(1f))
