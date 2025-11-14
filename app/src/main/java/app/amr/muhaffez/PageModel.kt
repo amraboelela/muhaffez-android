@@ -15,6 +15,9 @@ data class PageModel(
   val textString: String
     get() = annotatedString.text
 
+  val isEmpty: Boolean
+    get() = textString.isEmpty()
+
   fun reset() {
     juzNumber = 0
     surahName = ""

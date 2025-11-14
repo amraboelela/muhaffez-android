@@ -24,7 +24,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 
 @Composable
@@ -128,11 +127,11 @@ fun PageView(pageModel: PageModel, isRight: Boolean, modifier: Modifier = Modifi
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (pageModel.pageNumber > 0) {
-          Text("${pageModel.pageNumber}", fontSize = 20.sp, fontFamily = FontFamily.Serif)
+          Text("${pageModel.pageNumber}", fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
-          Text(pageModel.surahName, fontSize = 20.sp, fontFamily = FontFamily.Serif)
+          Text(pageModel.surahName, fontSize = 20.sp)
           Spacer(modifier = Modifier.weight(1f))
-          Text("جزء ${pageModel.juzNumber}", fontSize = 20.sp, fontFamily = FontFamily.Serif)
+          Text("جزء ${pageModel.juzNumber}", fontSize = 20.sp)
         } else {
           Text(" ")
         }
@@ -208,8 +207,7 @@ fun AutoSizeText(
           style = TextStyle(
             fontSize = test.sp,
             lineHeight = (lineHeight.value * test / fontSize.value).sp,
-            textAlign = textAlign,
-            fontFamily = FontFamily.Serif
+            textAlign = textAlign
           ),
           constraints = Constraints(
             maxWidth = maxWidthPx,
@@ -235,7 +233,6 @@ fun AutoSizeText(
       fontSize = adjustedFontSize,
       lineHeight = (lineHeight.value * adjustedFontSize.value / fontSize.value).sp,
       textAlign = textAlign,
-      fontFamily = FontFamily.Serif,
       modifier = Modifier.fillMaxWidth(),
       softWrap = true,
       maxLines = Int.MAX_VALUE
