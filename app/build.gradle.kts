@@ -13,7 +13,7 @@ android {
     minSdk = 24
     targetSdk = 36
     versionCode = 1
-    versionName = "1.0"
+    versionName = "1.0.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -25,6 +25,15 @@ android {
     }
   }
 
+  signingConfigs {
+    create("release") {
+      storeFile = file("muhaffez-release-key.jks")
+      storePassword = "muhaffez123"
+      keyAlias = "muhaffez"
+      keyPassword = "muhaffez123"
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -32,6 +41,7 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
       )
+      signingConfig = signingConfigs.getByName("release")
     }
   }
   compileOptions {

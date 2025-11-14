@@ -68,7 +68,7 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
           Text(
             text = "Tap here and start reciting from the Quran",
             modifier = Modifier
-              .padding(horizontal = 20.dp, vertical = 16.dp)
+              .padding(horizontal = 10.dp, vertical = 16.dp)
               .fillMaxWidth(),
             style = MaterialTheme.typography.titleMedium,
             color = Color.White,

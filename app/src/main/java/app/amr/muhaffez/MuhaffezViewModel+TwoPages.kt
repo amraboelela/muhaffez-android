@@ -102,7 +102,7 @@ private fun isEndOfAya(wordIndex: Int, wordCount: Int): Boolean {
 
 fun MuhaffezViewModel.surahSeparator(ayaIndex: Int): CharSequence {
   val surahName = quranModel.surahNameAt(ayaIndex)
-  val spannable = SpannableStringBuilder("\n\t\t\t\t\t\t\t\tسورة $surahName\n\n")
+  val spannable = SpannableStringBuilder("\n\t\t\t\t\tسورة $surahName\n\n")
   spannable.setSpan(AbsoluteSizeSpan(28, true), 0, spannable.length, 0)
   spannable.setSpan(UnderlineSpan(), 0, spannable.length, 0)
   return spannable
