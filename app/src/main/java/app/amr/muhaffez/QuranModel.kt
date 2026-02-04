@@ -219,7 +219,7 @@ class QuranModel private constructor(context: Context) {
     if (viewModel.currentPageIsRight != isRightPage(index)) {
       updatePages(viewModel, index)
       if (viewModel.currentPageIsRight) {
-        viewModel.leftPage.reset()
+        viewModel.leftPage.pageType = PageType.PRE_LEFT
       }
     }
   }

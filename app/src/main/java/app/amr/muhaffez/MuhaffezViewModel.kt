@@ -112,7 +112,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
 
   var tempPage = PageModel()
   var rightPage by mutableStateOf(PageModel())
-  var leftPage by mutableStateOf(PageModel())
+  var leftPage by mutableStateOf(PageModel(pageType = PageType.LEFT))
   var currentPageIsRight by mutableStateOf(true)
     private set
   fun updateCurrentPageIsRight(value: Boolean) {

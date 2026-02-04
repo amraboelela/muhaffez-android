@@ -23,8 +23,10 @@ fun MuhaffezViewModel.updatePages() {
 
   fun advanceLine() {
     if (quranModel.isRightPage(currentLineIndex)) {
+      tempPage.pageType = PageType.RIGHT
       rightPage = tempPage.deepCopy()
     } else {
+      tempPage.pageType = PageType.LEFT
       leftPage = tempPage.deepCopy()
     }
     currentLineIndex += 1
@@ -70,9 +72,11 @@ fun MuhaffezViewModel.updatePages() {
   }
   if (quranModel.isRightPage(currentLineIndex)) {
     if (leftPage.isEmpty) {
+      tempPage.pageType = PageType.RIGHT
       rightPage = tempPage.deepCopy()
     }
   } else {
+    tempPage.pageType = PageType.LEFT
     leftPage = tempPage.deepCopy()
   }
 }

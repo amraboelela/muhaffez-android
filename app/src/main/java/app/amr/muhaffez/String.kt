@@ -141,7 +141,7 @@ fun String.hasA3ozoBellah(): Boolean {
   // Need at least 5 words to check
   if (words.size < 5) return false
 
-  // Check similarity of first 5 words to a3ozo words
+  // Check similarity of first 4 words only (not all 5) - matching iOS implementation
   val similarityThreshold = 0.8
   for (i in 0..3) {
     val similarity = words[i].similarity(a3ozoWords[i])

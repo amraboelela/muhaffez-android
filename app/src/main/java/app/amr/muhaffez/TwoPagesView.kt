@@ -35,10 +35,14 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
   val density = LocalDensity.current
   val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
-  LaunchedEffect(viewModel.currentPageIsRight, viewModel.rightPage, viewModel.leftPage) {
+  LaunchedEffect(viewModel.rightPage.textString, viewModel.leftPage.textString, viewModel.currentPageIsRight) {
     // Wait for layout to complete by checking if scroll state is ready
     kotlinx.coroutines.delay(50)
-    val offset = if (viewModel.currentPageIsRight) screenWidthPx else 0f
+    val offset = when (viewModel.leftPage.pageType) {
+      PageType.LEFT -> if (viewModel.currentPageIsRight) screenWidthPx else 0f
+      PageType.PRE_LEFT -> if (viewModel.currentPageIsRight) 0f else screenWidthPx
+      else -> 0f
+    }
     scrollState.animateScrollTo(offset.toInt())
   }
 
@@ -91,8 +95,13 @@ fun TwoPagesView(viewModel: MuhaffezViewModel) {
       .fillMaxSize()
       .padding(bottom = 90.dp)  // Add padding to avoid mic button overlap
   ) {
-    PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
+    if (viewModel.leftPage.pageType == PageType.LEFT) {
+      PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
+    }
     PageView(viewModel.rightPage, isRight = true, modifier = Modifier.width(screenWidthDp))
+    if (viewModel.leftPage.pageType == PageType.PRE_LEFT) {
+      PageView(viewModel.leftPage, isRight = false, modifier = Modifier.width(screenWidthDp))
+    }
   }
 }
 
