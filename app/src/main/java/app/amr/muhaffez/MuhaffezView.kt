@@ -21,7 +21,11 @@ import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognizer) {
+fun MuhaffezView(
+  viewModel: MuhaffezViewModel,
+  recognizer: ArabicSpeechRecognizer,
+  setKeepScreenOn: (Boolean) -> Unit
+) {
   val context = LocalContext.current
   val sharedPrefs = remember {
     context.getSharedPreferences("MuhaffezPrefs", Context.MODE_PRIVATE)
@@ -117,8 +121,10 @@ fun MuhaffezView(viewModel: MuhaffezViewModel, recognizer: ArabicSpeechRecognize
         }
 
         if (viewModel.isRecording) {
+          setKeepScreenOn(false)
           recognizer.stopRecording()
         } else {
+          setKeepScreenOn(true)
           viewModel.resetData()
           recognizer.startRecording()
         }

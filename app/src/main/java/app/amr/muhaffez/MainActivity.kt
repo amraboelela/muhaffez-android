@@ -3,6 +3,7 @@ package app.amr.muhaffez
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,7 +44,7 @@ class MainActivity : ComponentActivity() {
       setContent {
         MuhaffezTheme {
           if (isGranted) {
-            MuhaffezView(viewModel, recognizer)
+            MuhaffezView(viewModel, recognizer, ::setKeepScreenOn)
           } else {
             PermissionDeniedMessage()
           }
@@ -56,11 +57,20 @@ class MainActivity : ComponentActivity() {
     ) {
       setContent {
         MuhaffezTheme {
-          MuhaffezView(viewModel, recognizer)
+          MuhaffezView(viewModel, recognizer, ::setKeepScreenOn)
         }
       }
     } else {
       requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+  }
+
+  // Keep screen on while recording (equivalent to UIApplication.shared.isIdleTimerDisabled)
+  fun setKeepScreenOn(keepOn: Boolean) {
+    if (keepOn) {
+      window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    } else {
+      window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
   }
 
@@ -71,6 +81,7 @@ class MainActivity : ComponentActivity() {
     if (wasRecordingBeforeBackground) {
       recognizer.stopRecording()
       viewModel.isRecording = false
+      setKeepScreenOn(false)
       println("MainActivity: Stopped recording due to app going to background")
     }
   }
