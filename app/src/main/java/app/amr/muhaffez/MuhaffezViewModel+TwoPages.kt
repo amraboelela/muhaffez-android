@@ -71,10 +71,8 @@ fun MuhaffezViewModel.updatePages() {
     }
   }
   if (quranModel.isRightPage(currentLineIndex)) {
-    if (leftPage.isEmpty) {
-      tempPage.pageType = PageType.RIGHT
-      rightPage = tempPage.deepCopy()
-    }
+    tempPage.pageType = PageType.RIGHT
+    rightPage = tempPage.deepCopy()
   } else {
     tempPage.pageType = PageType.LEFT
     leftPage = tempPage.deepCopy()

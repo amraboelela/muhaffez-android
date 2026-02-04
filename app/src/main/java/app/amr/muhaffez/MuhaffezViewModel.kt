@@ -83,6 +83,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
   var matchedWords by mutableStateOf(listOf<Pair<String, Boolean>>())
     private set
   fun updateMatchedWords(value: List<Pair<String, Boolean>>) {
+    println("updateMatchedWords called with ${value.size} words")
     matchedWords = value
     updatePages()
   }
@@ -345,7 +346,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
         quranWordsIndex++
         peekJob?.cancel()
         peekJob = viewModelScope.launch {
-          delay(5000)
+          delay(3000)
           peekHelper()
         }
       }
@@ -423,6 +424,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
 
   // --- Peek Helper ---
   fun peekHelper() {
+    println("peekHelper called, isRecording: $isRecording")
     if (!isRecording) return
     val results = matchedWords.toMutableList()
     val quranWordsIndex = matchedWords.size
@@ -431,6 +433,7 @@ class MuhaffezViewModel(context: Context? = null) : ViewModel() {
       results.add(quranWords[quranWordsIndex] to false)
       results.add(quranWords[quranWordsIndex + 1] to false)
       updateMatchedWords(results)
+      println("peekHelper: Added 2 words: ${quranWords[quranWordsIndex]}, ${quranWords[quranWordsIndex + 1]}")
     }
   }
 
