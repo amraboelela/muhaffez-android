@@ -40,3 +40,15 @@ local.properties
 # OS files
 .DS_Store
 release
+.aab
+/app/release
+
+# Keystore files - NEVER commit these\!
+*.jks
+*.keystore
+keystore.properties
+
+# Release artifacts - don't commit builds
+app/release/*.aab
+app/release/*.apk
+app/build/outputs/
